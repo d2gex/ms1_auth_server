@@ -12,6 +12,11 @@ def create_app(config_class=config.Config):
     app.config.from_object(config_class)
 
     db.init_app(app)
-    from authorization_server import models  # require to import models here so that migrate knows what to generate
+    # require to import models here so that migrate knows what to generate
+    from authorization_server import models
     migrate.init_app(app, db)
+
+    from authorization_server.frontend.views import fronted
+    app.register_blueprint(fronted, url_prefix='/')
+    
     return app

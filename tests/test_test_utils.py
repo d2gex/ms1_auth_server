@@ -71,7 +71,3 @@ def test_reset_database():
                 foo_bar()
                 assert ex_table.call_count == 4
                 assert qy_model.call_count == 6
-
-
-
-
