@@ -1,0 +1,11 @@
+*.pyo
+*.pyc
+.DS_Store
+.cache
+.pytest_cache
+.python-version
+.flaskenv
+.env
+.coverage
+# To avoid accidents
+__pycache__
