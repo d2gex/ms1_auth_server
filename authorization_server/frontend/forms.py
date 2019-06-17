@@ -1,6 +1,9 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
-from wtforms.validators import DataRequired, Email, Length, EqualTo
+from wtforms.validators import DataRequired, Email, Length, EqualTo, ValidationError
+from authorization_server.app import db
+from authorization_server import models
+
 
 
 class RegistrationForm(FlaskForm):
@@ -15,3 +18,8 @@ class RegistrationForm(FlaskForm):
                                      validators=[DataRequired(),
                                                  EqualTo('password', message="Please enter the same password again")])
     submit = SubmitField('Register Now')
+
+    def validate_email(self, email):
+        data = db.session.query(models.User).filter(models.User.email == email.data).first()
+        if data:
+            raise ValidationError('The email provided already exists. Please use another one')
