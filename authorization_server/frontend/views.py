@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, redirect,  url_for
-from authorization_server.frontend.forms import RegistrationForm
+from authorization_server.frontend.forms import RegistrationForm, LoginForm
 from authorization_server import models
 from authorization_server.app import db, bcrypt
 
@@ -21,7 +21,8 @@ def register():
 
 @frontend.route('/login', methods=['GET', 'POST'])
 def login():
-    return render_template('frontend/login.html')
+    form = LoginForm()
+    return render_template('frontend/login.html', form=form)
 
 
 @frontend.route('/profile', methods=['GET', 'POST'])
