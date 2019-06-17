@@ -5,29 +5,69 @@
     <script type="text/javascript" src="{{ url_for('frontend.static', filename='js/register.js') }}"></script>
 {% endblock header %}
 {% block content %}
-    <div class="signup-form" >
-        <form id="signup-form" method="POST", action="">
+    <div class="signup-form">
+        <form id="signup-form" method="POST" action="">
+            {{ form.hidden_tag() }}
             <h2>Sign Up</h2>
             <p>It's free and only takes a minute.</p>
             <hr>
             <div class="form-group">
-                <input type="text" class="form-control" name="firstname" placeholder="First Name">
+                {{ form.firstname.label(class="sr-only", for="firstname") }}
+                {% if form.firstname.errors %}
+                    {{ form.firstname(class="form-control is-invalid", id="firstname", placeholder="First Name") }}
+                    {% for error in form.firstname.errors %}
+                        <span class="is-invalid">{{ error }}</span>
+                    {% endfor %}
+                {% else %}
+                    {{ form.firstname(class="form-control", id="firstname", placeholder="First Name", autofocus=true) }}
+                {% endif %}
             </div>
             <div class="form-group">
-                <input type="text" class="form-control" name="lastname" placeholder="Last Name">
+                {{ form.lastname.label(class="sr-only", for="lastname") }}
+                {% if form.lastname.errors %}
+                    {{ form.lastname(class="form-control is-invalid", id="lastname", placeholder="Last Name") }}
+                    {% for error in form.lastname.errors %}
+                        <span class="is-invalid">{{ error }}</span>
+                    {% endfor %}
+                {% else %}
+                    {{ form.lastname(class="form-control", id="lastname", placeholder="Last Name") }}
+                {% endif %}
             </div>
             <div class="form-group">
-                <input type="email" class="form-control" name="email" placeholder="Email Address">
+                {{ form.email.label(class="sr-only", for="email") }}
+                {% if form.email.errors %}
+                    {{ form.email(class="form-control is-invalid", id="email", placeholder="Email Address") }}
+                    {% for error in form.email.errors %}
+                        <span class="is-invalid">{{ error }}</span>
+                    {% endfor %}
+                {% else %}
+                    {{ form.email(class="form-control", id="email", placeholder="Email Address") }}
+                {% endif %}
             </div>
             <div class="form-group">
-                <input type="password" class="form-control" name="password" id='password' placeholder="Password">
+                {{ form.password.label(class="sr-only", for="password") }}
+                {% if form.password.errors %}
+                    {{ form.password(class="form-control is-invalid", id="password", placeholder="Password") }}
+                    {% for error in form.password.errors %}
+                        <span class="is-invalid">{{ error }}</span>
+                    {% endfor %}
+                {% else %}
+                    {{ form.password(class="form-control", id="password", placeholder="Password") }}
+                {% endif %}
             </div>
             <div class="form-group">
-                <input type="password" class="form-control" name="confirm_password" placeholder="Confirm Password"
-                >
+                {{ form.confirm_password.label(class="sr-only", for="confirm_password") }}
+                {% if form.confirm_password.errors %}
+                    {{ form.confirm_password(class="form-control is-invalid", id="confirm_password", placeholder="Confirm Password") }}
+                    {% for error in form.confirm_password.errors %}
+                        <span class="is-invalid">{{ error }}</span>
+                    {% endfor %}
+                {% else %}
+                    {{ form.confirm_password(class="form-control", id="confirm_password", placeholder="Confirm Password") }}
+                {% endif %}
             </div>
             <div class="form-group">
-                <button type="submit" class="btn btn-primary btn-block btn-lg">Sign Up</button>
+                 {{ form.submit(class="btn btn-lg btn-primary btn-block") }}
             </div>
             <p class="small text-center">By clicking the Sign Up button, you agree to our <br><a href="#">Terms &amp;
                 Conditions</a>, and <a href="#">Privacy Policy</a>.</p>

@@ -1,7 +1,7 @@
 
 const INVALID_EMAIL = 'Please enter a valid email address';
-const PASSWORD_MISSING = 'Please provide a password';
-const PASSWORD_INVALID = 'Your password must be at least 8 characters long';
+const PASSWORD_INVALID = 'Your password must be between 8  and 15 characters long';
+const CONFIRM_PASSWORD = 'Please enter the same password again'
 
 class Register {
 
@@ -32,8 +32,10 @@ class Register {
             messages: {
                 email: INVALID_EMAIL,
                 password: {
-                    required: PASSWORD_MISSING,
                     minlength: PASSWORD_INVALID
+                },
+                confirm_password: {
+                    equalTo: CONFIRM_PASSWORD
                 }
             },
             errorClass: "errorFloat",

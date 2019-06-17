@@ -16,7 +16,7 @@ def create_app(config_class=config.Config):
     from authorization_server import models
     migrate.init_app(app, db)
 
-    from authorization_server.frontend.views import fronted
-    app.register_blueprint(fronted, url_prefix='/')
+    from authorization_server.frontend.views import frontend
+    app.register_blueprint(frontend, url_prefix='/')
 
     return app
