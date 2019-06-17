@@ -4,7 +4,7 @@ from authorization_server.app import db, login_manager
 
 @login_manager.user_loader
 def load_user(user_id):
-    return db.session.query(User.id == user_id).first()
+    return db.session.query(User).get(user_id)
 
 
 class User(db.Model, UserMixin):

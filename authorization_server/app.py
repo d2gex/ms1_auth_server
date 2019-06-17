@@ -9,6 +9,9 @@ db = SQLAlchemy()
 migrate = Migrate()
 bcrypt = Bcrypt()
 login_manager = LoginManager()
+login_manager.login_view = "frontend.login"
+login_manager.login_message = "Please log in to see restricted access web pages"
+login_manager.login_message_category = "info"
 
 
 def create_app(config_class=config.Config):

@@ -1,4 +1,32 @@
-{% extends 'layout.html' %}
+{% block header %}
+    <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet"
+          id="bootstrap-css">
+    <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+{% endblock header %}
 {% block content %}
-    You've been redirected to your profile!
+    <div class="container-fluid well span6">
+        <h2>Account Details</h2>
+        <div class="row-fluid">
+            <div class="span2">
+                <img src="{{ url_for('frontend.static', filename='images/girl.png') }}"
+                     class="img-circle">
+            </div>
+
+            <div class="span8">
+                <h3>{{ current_user.firstname|capitalize }} {{ current_user.lastname|capitalize }}</h3>
+                <h6>Email: {{ current_user.email }}</h6>
+            </div>
+
+            <div class="span2">
+                <div class="btn-group">
+                    <a class="btn dropdown-toggle btn-info" data-toggle="dropdown"
+                       href="{{ url_for('frontend.logout') }}">Logout</a>
+                </div>
+            </div>
+        </div>
+        <div>Icons made by <a href="https://www.flaticon.com/authors/freepik" title="Freepik">Freepik</a> from <a
+                href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> is licensed by <a
+                href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC
+            3.0 BY</a></div>
+    </div>
 {% endblock content %}

@@ -86,3 +86,7 @@ body {
 .signup-form form a:hover {
     text-decoration: underline;
 }
+
+#dialog-confirm {
+    display: none;
+}

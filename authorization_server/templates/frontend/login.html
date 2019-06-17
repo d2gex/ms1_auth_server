@@ -39,7 +39,11 @@
             <div class="form-group">
                 {{ form.submit(class="btn btn-lg btn-primary btn-block", id='sing_in') }}
             </div>
+            <div class="clearfix">
+                <a href="#" id='forgot_password' class="pull-right">Forgot Password?</a>
+            </div>
         </form>
-        <div class="text-center"><a href="#">Forgotten password?</a></div>
+        <div class="text-center"><a href="{{ url_for('frontend.register') }}">Create Account?</a></div>
     </div>
+    {% include 'frontend/include/dialog.html' %}
 {% endblock content %}

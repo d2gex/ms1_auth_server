@@ -98,14 +98,15 @@ def test_registration_form(frontend_app):
 
 
 @test_utils.reset_database()
-def test_login(frontend_app):
-    '''Test the login form as follows:
+def test_login_logout(frontend_app):
+    '''Test the login and logout screens as follows:
 
     1) Login is served at /login
     2) if provided email does not exist => show login error
     3) if email exist but password is wrong => show login error
     4) if both email and password are correct => redirect to /profile page
-    5) if email/password is invalid or missing => show form error
+    5) if user is logged in and click logout => user should be logged out
+    6) if email/password is invalid or missing => show form error
     '''
     assert not db.session.query(models.User).first()
 
@@ -136,25 +137,27 @@ def test_login(frontend_app):
     data['password'] = 'password'
     response = frontend_app.post('/login', data=data, follow_redirects=True)
     assert response.status_code == 200
-    assert 'your profile!' in response.get_data(as_text=True)
+    assert 'Account Details' in response.get_data(as_text=True)
+    with frontend_app.session_transaction() as session:
+        assert 'user_id' in session
 
-    # (5.1)
+    # (5)
+    response = frontend_app.get('/logout', follow_redirects=True)
+    assert response.status_code == 200
+    with frontend_app.session_transaction() as session:
+        assert 'user_id' not in session
+
+    # (6.1)
     # ---> Invalid field - email
     data['email'] = 'invalid email'
     response = frontend_app.post('/login', data=data, follow_redirects=True)
     assert response.status_code == 200
     assert forms.INVALID_EMAIL_ERROR in response.get_data(as_text=True)
 
-    # (5.2)
+    # (6.2)
     # Missing field - password
     data['email'] = 'validemail@example.com'
     del data['password']
     response = frontend_app.post('/login', data=data, follow_redirects=True)
     assert response.status_code == 200
     assert forms.INVALID_PASSWORD_ERROR in response.get_data(as_text=True)
-
-
-
-
-
-

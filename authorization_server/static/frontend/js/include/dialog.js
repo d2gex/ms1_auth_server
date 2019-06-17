@@ -33,11 +33,11 @@ class ModalDialog {
         jQuery('#d_content').text(msg)
     }
 
-    setConfirmButton(msg) {
-        self.popup.dialog("option", "buttons",
+    setConfirmButton(msg, buttonLabel='OK') {
+        this.popup.dialog("option", "buttons",
             [
                 {
-                    text: "OK",
+                    text: buttonLabel,
                     click: () => {
                         this.close();
                         this.reset(msg);
@@ -51,7 +51,7 @@ class ModalDialog {
         if (msg) {
             this.setMessage(msg);
         }
-        self.popup.dialog("option", "buttons",
+        this.popup.dialog("option", "buttons",
             [
                 {
                     text: "OK",
