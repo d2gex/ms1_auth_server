@@ -28,9 +28,24 @@ class Login {
                 form.submit();
             }
         };
+
     }
+
+    send() {
+        this.popup.open()
+    }
+
+    addOnclickEventToSignInButton() {
+        jQuery('#sing_in').click(() => {this.send();})
+    }
+
     getValidationObject() {
         return this.validationObj
+    }
+
+    init(popup) {
+        this.popup = popup
+        this.addOnclickEventToSignInButton()
     }
 
 
@@ -39,6 +54,8 @@ class Login {
 jQuery(document).ready(function () {
 
     let login = new Login()
-    jQuery('#signup-form').validate(login.getValidationObject());
+    let modalDialog = new ModalDialog('#dialog-confirm', login)
+    login.init(modalDialog)
+    jQuery('#signin-form').validate(login.getValidationObject());
 
 });
