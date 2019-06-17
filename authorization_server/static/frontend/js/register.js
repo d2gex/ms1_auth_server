@@ -1,7 +1,6 @@
-
 const INVALID_EMAIL = 'Please enter a valid email address';
 const PASSWORD_INVALID = 'Your password must be between 8  and 15 characters long';
-const CONFIRM_PASSWORD = 'Please enter the same password again'
+const CONFIRM_PASSWORD = 'Please enter the same password again';
 
 class Register {
 
@@ -44,8 +43,9 @@ class Register {
             }
         };
     }
+
     getValidationObject() {
-        return this.validationObj
+        return this.validationObj;
     }
 
 
@@ -53,7 +53,7 @@ class Register {
 
 jQuery(document).ready(function () {
 
-    let register = new Register()
+    let register = new Register();
     jQuery('#signup-form').validate(register.getValidationObject());
 
 });

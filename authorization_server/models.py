@@ -1,7 +1,13 @@
-from authorization_server.app import db
+from flask_login import UserMixin
+from authorization_server.app import db, login_manager
 
 
-class User(db.Model):
+@login_manager.user_loader
+def load_user(user_id):
+    return db.session.query(User.id == user_id).first()
+
+
+class User(db.Model, UserMixin):
 
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)

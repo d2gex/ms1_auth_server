@@ -1,4 +1,3 @@
-
 const INVALID_EMAIL = 'Please enter a valid email address';
 const PASSWORD_INVALID = 'Your password must be between 8  and 15 characters long';
 
@@ -31,31 +30,15 @@ class Login {
 
     }
 
-    send() {
-        this.popup.open()
-    }
-
-    addOnclickEventToSignInButton() {
-        jQuery('#sing_in').click(() => {this.send();})
-    }
-
     getValidationObject() {
-        return this.validationObj
+        return this.validationObj;
     }
-
-    init(popup) {
-        this.popup = popup
-        this.addOnclickEventToSignInButton()
-    }
-
 
 }
 
 jQuery(document).ready(function () {
 
-    let login = new Login()
-    let modalDialog = new ModalDialog('#dialog-confirm', login)
-    login.init(modalDialog)
+    let login = new Login();
     jQuery('#signin-form').validate(login.getValidationObject());
 
 });
