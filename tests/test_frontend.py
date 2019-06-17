@@ -1,5 +1,5 @@
 import pytest
-from authorization_server.app import db, create_app
+from authorization_server.app import db, bcrypt, create_app
 from authorization_server import models, config
 from tests import utils as test_utils
 
@@ -37,8 +37,16 @@ def test_registration_form(frontend_app):
             'password': 'password',
             'confirm_password': 'password'}
     response = frontend_app.post('/', data=data, follow_redirects=True)
+    # --> Ensure record has been stored in database and password is encrypted
+    db_data = db.session.query(models.User).one()
+    assert bcrypt.check_password_hash(db_data.password, data['password'])
+    # --> User is redirected to login page
     assert response.status_code == 200
     assert 'login page!' in response.get_data(as_text=True)
+    # -> Clean after me
+    db.session.query(models.User).delete()
+    db.session.commit()
+    assert not db.session.query(models.User).first()
 
     # (3.1)
     original_value = data['firstname']
@@ -68,6 +76,8 @@ def test_registration_form(frontend_app):
     assert response.status_code == 200
     assert 'The email provided already exists. Please use another one' in response.get_data(as_text=True)
     db.session.query(models.User).delete()
+    db.session.commit()
+    assert not db.session.query(models.User).first()
 
     # (3.3)
     original_value = data['password']

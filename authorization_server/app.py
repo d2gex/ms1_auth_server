@@ -1,10 +1,12 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_bcrypt import Bcrypt
 from authorization_server import config
 
 db = SQLAlchemy()
 migrate = Migrate()
+bcrypt = Bcrypt()
 
 
 def create_app(config_class=config.Config):
@@ -15,6 +17,7 @@ def create_app(config_class=config.Config):
     # require to import models here so that migrate knows what to generate
     from authorization_server import models
     migrate.init_app(app, db)
+    bcrypt.init_app(app)
 
     from authorization_server.frontend.views import frontend
     app.register_blueprint(frontend, url_prefix='/')
