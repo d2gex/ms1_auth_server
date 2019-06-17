@@ -4,6 +4,7 @@ from sqlalchemy import exc
 from authorization_server import config, models
 from authorization_server.app import db, create_app
 from tests import utils as test_utils
+import uuid
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -28,6 +29,24 @@ def test_user_table():
     try:
         db.session.commit()
     except exc.IntegrityError:
-        pass
+        db.session.rollback()
     else:
         raise AssertionError('user_2 did not throw Integrity error as expected')
+
+
+def test_client_table():
+    app_id = str(uuid.uuid4()).replace('-', '')
+    client_1 = models.Application(id=app_id, password='something')
+    client_2 = models.Application(id=app_id, password='something')
+    db.session.add(client_1)
+    db.session.commit()
+    assert db.session.query(models.Application).one()
+    # Neccessary to avoid a persistent conflict error given that both client_1 and client_2 do have the same primary key
+    db.session.expunge(client_1)
+    db.session.add(client_2)
+    try:
+        db.session.commit()
+    except exc.IntegrityError:
+        db.session.rollback()
+    else:
+        raise AssertionError('client_2 did not throw Integrity error as expected')

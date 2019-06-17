@@ -4,7 +4,7 @@ from sqlalchemy import Table
 from authorization_server import models
 from authorization_server.app import db
 
-table_names = [models.User]
+table_names = [models.User, models.Application]
 
 
 def queries(tables):
