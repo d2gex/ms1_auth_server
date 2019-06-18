@@ -1,3 +1,5 @@
+import uuid
+
 from datetime import datetime
 from flask_login import UserMixin
 from authorization_server.app import db, login_manager
@@ -31,3 +33,8 @@ class Application(db.Model):
     is_allowed = db.Column(db.Boolean, default=False)
     created = db.Column(db.DateTime, default=datetime.now)
     updated = db.Column(db.DateTime)
+
+    @classmethod
+    def generate_id(cls):
+        return str(uuid.uuid4()).replace('-', '')
+

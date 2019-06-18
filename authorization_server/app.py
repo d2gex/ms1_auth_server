@@ -26,6 +26,8 @@ def create_app(config_class=config.Config):
     login_manager.init_app(app)
 
     from authorization_server.frontend.views import frontend
+    from authorization_server.apis.handler import api_v1
     app.register_blueprint(frontend, url_prefix='/')
+    app.register_blueprint(api_v1, url_prefix='/api')
 
     return app
