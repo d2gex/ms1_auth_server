@@ -1,17 +1,8 @@
-import pytest
-
 from sqlalchemy import exc, func
 from authorization_server import config, models
 from authorization_server.app import db, create_app
 from tests import utils as test_utils
 import uuid
-
-
-@pytest.fixture(scope='module', autouse=True)
-def app_context():
-    app = create_app(config_class=config.TestingConfig)
-    with app.app_context():
-        yield
 
 
 def test_db_connection():

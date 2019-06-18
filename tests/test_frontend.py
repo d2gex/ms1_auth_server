@@ -1,16 +1,8 @@
-import pytest
-from authorization_server import models, config
-from authorization_server.app import db, bcrypt, create_app
+from authorization_server import models
+from authorization_server.app import db, bcrypt
 from authorization_server.frontend import forms
 from authorization_server.frontend.views import LOGIN_ERROR_MESSAGE
 from tests import utils as test_utils
-
-
-@pytest.fixture(scope='module', autouse=True)
-def app_context():
-    app = create_app(config_class=config.TestingConfig)
-    with app.app_context():
-        yield
 
 
 @test_utils.reset_database()

@@ -4,6 +4,13 @@ from authorization_server import config
 from authorization_server.app import create_app
 
 
+@pytest.fixture(scope='session', autouse=True)
+def app_context():
+    app = create_app(config_class=config.TestingConfig)
+    with app.app_context():
+        yield
+
+
 @pytest.fixture
 def frontend_app():
     app = create_app(config_class=config.TestingConfig)
