@@ -21,10 +21,9 @@ class User(db.Model, UserMixin):
 class Application(db.Model):
 
     __tablename__ = 'application'
-    id = db.Column(db.String(40), primary_key=True, nullable=False)
+    id = db.Column(db.String(length=40), primary_key=True, nullable=False)
+    reg_token = db.Column(db.String(length=40), unique=True)
     password = db.Column(db.String(length=128))
     active = db.Column(db.Boolean, default=True)
     created = db.Column(db.DateTime, default=datetime.now)
     updated = db.Column(db.DateTime)
-
-
