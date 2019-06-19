@@ -15,7 +15,7 @@ def test_post(frontend_app):
     1) If data provided isn't the expected data structure => throw 400
     2) if data provided misses any expected key => 400
     3) if the client's email is already register => 409
-    3) Otherwise create client record and return client_id
+    4) Otherwise create client record and return client_id
     '''
 
     # (1)
