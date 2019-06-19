@@ -118,4 +118,4 @@ def test_post(frontend_app):
     ret_data = response.get_json()
     assert ret_data['id'] == client_id
     db_data = db.session.query(models.Application).filter_by(email=data['email']).one()
-    assert bcrypt.check_password_hash(db_data.password, ret_data['password'])
+    assert bcrypt.check_password_hash(db_data.client_secret, ret_data['client_secret'])

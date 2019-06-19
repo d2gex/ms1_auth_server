@@ -38,9 +38,9 @@ def test_client_table():
     # (1)
     app_id = str(uuid.uuid4()).replace('-', '')
     client_1 = models.Application(id=app_id, name='client_1', description='Client 1 ...',
-                                  password='something', email='email_a@example.com')
+                                  client_secret='something', email='email_a@example.com')
     client_2 = models.Application(id=app_id, name='client_2', description='Client 2 ...',
-                                  password='something', email='email_b@example.com')
+                                  client_secret='something', email='email_b@example.com')
     db.session.add(client_1)
     db.session.commit()
     assert db.session.query(models.Application).one()
@@ -80,9 +80,9 @@ def test_client_table():
 
     # (3)
     # ---> reg_token need to be unique
-    client_3 = models.Application(id=str(uuid.uuid4()).replace('-', ''), password='something', reg_token='sametoken',
+    client_3 = models.Application(id=str(uuid.uuid4()).replace('-', ''), client_secret='something', reg_token='sametoken',
                                   email='email_c@example.com', name='client 3', description='client 3 ...')
-    client_4 = models.Application(id=str(uuid.uuid4()).replace('-', ''), password='something', reg_token='sametoken',
+    client_4 = models.Application(id=str(uuid.uuid4()).replace('-', ''), client_secret='something', reg_token='sametoken',
                                   email='email_d@example.com', name='client 4', description='client 4 ...')
     db.session.add(client_3)
     db.session.commit()
@@ -96,9 +96,9 @@ def test_client_table():
 
     # (4)
     # --> email need to be unique
-    client_5 = models.Application(id=str(uuid.uuid4()).replace('-', ''), password='something', reg_token='token_1',
+    client_5 = models.Application(id=str(uuid.uuid4()).replace('-', ''), client_secret='something', reg_token='token_1',
                                   email='email_e@example.com', name='client 5', description='client 5 ...')
-    client_6 = models.Application(id=str(uuid.uuid4()).replace('-', ''), password='something', reg_token='token_2',
+    client_6 = models.Application(id=str(uuid.uuid4()).replace('-', ''), client_secret='something', reg_token='token_2',
                                   email='email_e@example.com', name='client 6', description='client 6 ...')
     db.session.add(client_5)
     db.session.commit()

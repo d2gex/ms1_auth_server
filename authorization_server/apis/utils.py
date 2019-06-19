@@ -3,7 +3,7 @@ from secrets import choice
 
 RESPONSE_201 = "A new object has been created. Uri: {description}"
 RESPONSE_201_REGISTRATION_POST = {'id': 'Unique Client ID'}
-RESPONSE_201_VERIFICATION_POST = {'id': 'Unique Client ID', 'password': 'Accessing Password'}
+RESPONSE_201_VERIFICATION_POST = {'id': 'Unique Client ID', 'client_secret': "Client's secret password"}
 RESPONSE_400 = "Invalid received data: {description}"
 RESPONSE_409 = "An error while processing the request occurred. Please see error description: {description}"
 RESPONSE_500 = "Internal Server Error. Please see error description: {description}"

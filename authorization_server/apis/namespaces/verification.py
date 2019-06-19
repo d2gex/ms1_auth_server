@@ -49,17 +49,17 @@ class Verification(Resource):
                 one()
         except exc.NoResultFound:
             raise api_errors.Conflict409Error(message=f"Client '{api.payload['id']}' may not yet have registered "
-                                                  f"or token is invalid. Please register first at "
-                                                  f"{request.url.replace('verification', 'registration')}",
+                                                      f"or token is invalid. Please register first at "
+                                                      f"{request.url.replace('verification', 'registration')}",
                                               envelop=api_utils.RESPONSE_409)
         else:
-            password = api_utils.generate_password(10)
-            db_data.password = bcrypt.generate_password_hash(password).decode('utf-8')
+            client_secret = api_utils.generate_password(10)
+            db_data.client_secret = bcrypt.generate_password_hash(client_secret).decode('utf-8')
             db_data.token = None
             db.session.add(db_data)
             db.session.commit()
 
             response = dict(api_utils.RESPONSE_201_VERIFICATION_POST)
             response['id'] = db_data.id
-            response['password'] = password
+            response['client_secret'] = client_secret
             return response, 201

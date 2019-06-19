@@ -28,7 +28,7 @@ class Application(db.Model):
     email = db.Column(db.String(length=50), unique=True, nullable=False)
     name = db.Column(db.String(length=50), nullable=False)
     description = db.Column(db.String(length=255), nullable=False)
-    password = db.Column(db.String(length=128))
+    client_secret = db.Column(db.String(length=128))
     active = db.Column(db.Boolean, default=True)
     is_allowed = db.Column(db.Boolean, default=False)
     created = db.Column(db.DateTime, default=datetime.now)
