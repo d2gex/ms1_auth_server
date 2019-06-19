@@ -1,10 +1,12 @@
 import functools
 
+from os.path import join
 from sqlalchemy import Table
-from authorization_server import models
+from authorization_server import config, models
 from authorization_server.app import db
 
 table_names = [models.User, models.Application]
+TEST_PATH = join(config.ROOT_PATH, 'tests')
 
 
 def queries(tables):
