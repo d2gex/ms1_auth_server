@@ -51,5 +51,5 @@ class Registration(Resource):
         db.session.commit()
 
         response = dict(utils.RESPONSE_201_REGISTRATION_POST)
-        response['client_id'] = data['id']
+        response['id'] = data['id']
         return response, 201

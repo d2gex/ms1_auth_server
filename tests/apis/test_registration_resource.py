@@ -62,5 +62,5 @@ def test_post(frontend_app):
                                  content_type='application/json')
     assert response.status_code == 201
     ret_data = response.get_json()
-    assert ret_data['client_id']
+    assert ret_data['id']
     assert db.session.query(models.Application).filter_by(email=post_data['email']).first()
