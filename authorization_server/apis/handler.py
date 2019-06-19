@@ -1,6 +1,6 @@
 from flask import Blueprint
 from flask_restplus import Api
-from authorization_server.apis import errors
+from authorization_server.apis import errors as api_errors
 from authorization_server.apis.namespaces import registration, verification
 
 
@@ -13,13 +13,13 @@ api = Api(api_v1,
 
 @api.errorhandler
 def default_error_handler(error):
-    error = errors.Server500Error(message='Internal Server Error')
+    error = api_errors.Server500Error(message='Internal Server Error')
     return error.to_response()
 
 
-@api.errorhandler(errors.BadRequest400Error)
-@api.errorhandler(errors.Conflict409Error)
-@api.errorhandler(errors.Server500Error)
+@api.errorhandler(api_errors.BadRequest400Error)
+@api.errorhandler(api_errors.Conflict409Error)
+@api.errorhandler(api_errors.Server500Error)
 def handle_error(error):
     return error.to_response()
 
