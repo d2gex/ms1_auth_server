@@ -6,7 +6,7 @@ from sqlalchemy import Table
 from authorization_server import config, models
 from authorization_server.app import db
 
-table_names = [models.User, models.Application]
+table_names = [models.User, models.AuthorisationCode, models.Application]
 TEST_PATH = join(config.ROOT_PATH, 'tests')
 
 

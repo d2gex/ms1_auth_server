@@ -35,8 +35,19 @@ class Application(db.Model):
     is_allowed = db.Column(db.Boolean, default=False)
     created = db.Column(db.DateTime, default=datetime.now)
     updated = db.Column(db.DateTime)
+    authorisation_code = db.relationship("AuthorisationCode", back_populates='application')
 
     @classmethod
     def generate_id(cls):
         return str(uuid.uuid4()).replace('-', '')
+
+
+class AuthorisationCode(db.Model):
+
+    __tablename__ = 'authorisation_code'
+    id = db.Column(db.Integer, primary_key=True)
+    created = db.Column(db.DateTime, default=datetime.now)
+    updated = db.Column(db.DateTime)
+    application_id = db.Column(db.String(length=40), db.ForeignKey('application.id'))
+    application = db.relationship('Application', back_populates='authorisation_code')
 

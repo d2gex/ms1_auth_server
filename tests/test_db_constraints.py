@@ -1,3 +1,5 @@
+import pytest
+
 from sqlalchemy import exc, func
 from authorization_server import models
 from authorization_server.app import db
@@ -173,3 +175,38 @@ def test_client_table():
     db.session.add(client_12)
     db.session.commit()
     assert db.session.query(func.count(models.Application.id)).scalar() == db_num_clients + 2
+
+
+@test_utils.reset_database(tear='up_down')
+def test_authorisation_code_table():
+    '''Ensure authorisation_code constrains are met
+    '''
+
+    constraints = {
+        'id': False,
+        'email': True,
+        'reg_token': True,
+        'web_url': True,
+        'redirect_uri': True,
+        'name': True,
+        'description': True
+    }
+
+    rows = test_utils.generate_pair_client_model_data(constraints)
+
+    client = models.Application(**rows[0])
+    db.session.add(client)
+    db.session.commit()
+    db_data = db.session.query(models.Application).one()
+
+    auth_code = models.AuthorisationCode(application_id='this id does not exist in the db yet')
+    db.session.add(auth_code)
+    with pytest.raises(exc.IntegrityError):
+        db.session.commit()
+
+    db.session.rollback()
+    auth_code.application_id = db_data.id
+    db.session.add(auth_code)
+    db.session.commit()
+    db_data = db.session.query(models.Application, models.AuthorisationCode).one()
+    assert db_data[0].id == db_data[1].application_id
