@@ -10,9 +10,15 @@ from authorization_server.apis import utils as api_utils, errors as api_errors
 api = NameSpace('registration', description="Resource used by clients to register with the Authorisation server")
 
 registration_dto = api.model('Registration', {
-    'name': fields.String(max_length=50, required=True, description='Name identifying the application client'),
-    'description': fields.String(max_length=255, required=True, description='Description of the application client'),
-    'email': fields.String(max_length=50, required=True, description='Email of the application client')
+    'name': fields.String(max_length=50, required=True, description='Name identifying the client application'),
+    'description': fields.String(max_length=255, required=True, description='Description of the clientapplication'),
+    'email': fields.String(max_length=50, required=True, description='Email of the client application'),
+    'redirect_uri': fields.String(max_length=255,
+                                  required=True,
+                                  description="Client application's url to where the resource owner will be redirected "
+                                              "to after authorisation code is issued"),
+    'web_url': fields.String(max_length=255, required=True, description='Main url of the client application. '
+                                                                        'Typically https://www.appclient.com')
 })
 
 
@@ -38,6 +44,12 @@ class Registration(Resource):
             if key not in api.payload:
                 raise api_errors.BadRequest400Error(message=f"Required key '{key}' not found",
                                                     envelop=api_utils.RESPONSE_400)
+
+        # Ensure that both the received redirect_uri and web_url are valid and start by https
+        if not all(map(api_utils.is_url_valid, (api.payload['web_url'], api.payload['redirect_uri']))):
+            raise api_errors.Conflict409Error(message=f"Either the 'redirect_uri' or 'web_url' is not a valid url. "
+                                                      f"A valid url must start by 'https://'",
+                                              envelop=api_utils.RESPONSE_409)
 
         # has the client already registered?
         if db.session.query(models.Application).filter_by(email=api.payload['email']).first():

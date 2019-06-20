@@ -71,3 +71,65 @@ def test_reset_database():
                 foo_bar()
                 assert ex_table.call_count == 4
                 assert qy_model.call_count == 6
+
+
+def test_generate_pair_client_model_data():
+    '''Ensure that the following occurs:
+
+    1) If not constraints => the two generated rows have all their field unique
+    2) if id constraint is not present => id is the same
+    3) if reg_token constraint is not present => reg_token is the same
+    4) if email constraint is not present => email is the same
+    5) if web_url constraint is not present => web_url is the same
+    6) if redirect_url constraint is not present => web_url is the same
+    7) if name constraint is not present => name is None
+    8) if description constraint is not present => description is None
+    '''
+
+    constraints = {
+        'id': True,
+        'email': True,
+        'reg_token': True,
+        'web_url': True,
+        'redirect_uri': True,
+        'name': True,
+        'description': True
+    }
+
+    # (1)
+    rows = test_utils.generate_pair_client_model_data(constraints)
+    assert rows[0]['id'] != rows[1]['id']
+    assert rows[0]['email'] != rows[1]['email']
+    assert rows[0]['reg_token'] != rows[1]['reg_token']
+    assert rows[0]['web_url'] != rows[1]['web_url']
+    assert rows[0]['redirect_uri'] != rows[1]['redirect_uri']
+
+    # (2)
+    constraints['id'] = False
+    rows = test_utils.generate_pair_client_model_data(constraints)
+    assert rows[0]['id'] == rows[-1]['id']
+
+    # (3)
+    constraints['reg_token'] = False
+    rows = test_utils.generate_pair_client_model_data(constraints)
+    assert rows[0]['reg_token'] == rows[-1]['reg_token']
+
+    # (4)
+    constraints['email'] = False
+    rows = test_utils.generate_pair_client_model_data(constraints)
+    assert rows[0]['email'] == rows[-1]['email']
+
+    # (5)
+    constraints['web_url'] = False
+    rows = test_utils.generate_pair_client_model_data(constraints)
+    assert rows[0]['web_url'] == rows[-1]['web_url']
+
+    # (6)
+    constraints['redirect_uri'] = False
+    rows = test_utils.generate_pair_client_model_data(constraints)
+    assert rows[0]['redirect_uri'] == rows[-1]['redirect_uri']
+
+    # (7)
+    constraints['description'] = False
+    rows = test_utils.generate_pair_client_model_data(constraints)
+    assert not any([rows[0]['description'], rows[-1]['description']])

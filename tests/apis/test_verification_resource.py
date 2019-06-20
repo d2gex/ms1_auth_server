@@ -1,4 +1,5 @@
 import json
+import secrets
 
 from authorization_server import models
 from authorization_server.app import db, bcrypt
@@ -57,6 +58,8 @@ def test_post(frontend_app):
     data['email'] = 'info@appdomain.com'
     data['name'] = 'App Name'
     data['description'] = 'App Description'
+    data['web_url'] = f"https://{secrets.token_hex(14)}domain.com"
+    data['redirect_uri'] = f"{data['web_url']}/callback"
     client_app = models.Application(**data)
     db.session.add(client_app)
     db.session.commit()

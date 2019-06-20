@@ -1,4 +1,6 @@
 import string
+import re
+
 from secrets import choice
 
 RESPONSE_201 = "A new object has been created. Uri: {description}"
@@ -36,3 +38,21 @@ def generate_password(length):
             and sum(c.isdigit() for c in password) >= 3):
             break
     return password
+
+
+def is_url_valid(url):
+    '''Check whether an url is valid using Django Validation rules:
+    https://codereview.stackexchange.com/questions/19663/http-url-validating. However we don't want to scrape
+    ftp-like urls
+    '''
+
+    url_regex = re.compile(
+        r'^(?:https)://'  # https://
+        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
+        r'localhost|'  # localhost...
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|'  # ...or ipv4
+        r'\[?[A-F0-9]*:[A-F0-9:]+\]?)'  # ...or ipv6
+        r'(?::\d+)?'  # optional port
+        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+
+    return url_regex.match(url) is not None

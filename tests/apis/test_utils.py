@@ -26,7 +26,7 @@ def test_make_response():
             utils.make_response(900)
 
     finally:
-        list([delattr(utils, x) for x in attributes])
+        list(delattr(utils, x) for x in attributes)
         assert not all([getattr(utils, x, None) for x in attributes])
 
 
@@ -39,3 +39,9 @@ def test_generate_password():
         assert any(c.islower() for c in password)
         assert any(c.isupper() for c in password)
         assert sum(c.isdigit() for c in password) >= 3
+
+
+def test_is_url_valid():
+
+    assert not any(map(utils.is_url_valid, ['something', 'https://not url', 'http://www.appdomain.com']))
+    assert all(map(utils.is_url_valid, ['https://localhost', 'https://appdomain.com', 'https://www.appdomain.com']))
