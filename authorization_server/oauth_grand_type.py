@@ -1,8 +1,11 @@
 import base64
 import binascii
+import json
 
+from datetime import datetime, timedelta
+from jwcrypto import jws, jwk
 from sqlalchemy.orm import exc
-from authorization_server import models
+from authorization_server import config, models
 from authorization_server.app import db
 
 CLIENT_INVALID_REQUEST_ERROR = 'invalid_request'
@@ -30,6 +33,7 @@ class AuthorisationCode:
 
     def validate_request(self):
         '''Validate a client request starting first by those operations that do not require looking into the database.
+        The expected fields are: client_id, response_type, state and redirect_url
         '''
         errors = {
             'type': RO_TYPE_ERROR,
@@ -82,6 +86,31 @@ class AuthorisationCode:
 
         return True
 
-    def response(self):
-        # TO-DO
-        raise NotImplementedError
+    def response(self, client_id):
+        '''Craft a response to be sent back to the client as specified by oAuth
+        '''
+
+        # Create a unique id in the database to be associated to this token
+        auth_code = models.AuthorisationCode(application_id=client_id)
+        db.session.add(auth_code)
+        db.session.commit()
+
+        exp_date = (datetime.utcnow() + timedelta(seconds=config.Config.AUTH_CODE_EXPIRATION_TIME)).\
+            strftime("%d-%m-%Y %H:%M:%S")
+        payload = {
+            'client_id': self.client_id,
+            'redirect_uri': self.redirect_uri,
+            'expiration_date': exp_date,
+            'code_id': auth_code.id
+        }
+
+        # Create a JWS with given payload
+        jws_obj = jws.JWS(json.dumps(payload).encode(config.Config.AUTH_CODE_ENCODING))
+        private_key = jwk.JWK.from_json(config.Config.private_jwk)
+        jws_obj.add_signature(private_key, None, json.dumps({"alg": config.Config.JWT_ALGORITHM}))
+
+        # return code and state as defined by oAuth
+        return {
+            'code': jws_obj.serialize(compact=True),
+            'state': self.state
+        }

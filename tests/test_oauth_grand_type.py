@@ -1,6 +1,9 @@
+import uuid
 import base64
+import json
 
-from authorization_server import models, oauth_grand_type as oauth_gt
+from jwcrypto import jws, jwk
+from authorization_server import config, models, oauth_grand_type as oauth_gt
 from authorization_server.app import db
 from tests import utils as test_utils
 
@@ -108,3 +111,63 @@ def test_valid_request():
     auth_code = oauth_gt.AuthorisationCode(**kwargs)
     success = auth_code.validate_request()
     assert success is True
+
+
+@test_utils.reset_database()
+def test_response():
+    '''Ensure that response is up to the standards set by oAuth2
+    '''
+
+    # Prepare underlying database and request context for successful response generation
+    # --> Create database context
+    constraints = {
+        'id': True,
+        'email': True,
+        'reg_token': True,
+        'web_url': True,
+        'redirect_uri': True,
+        'name': True,
+        'description': True
+    }
+    data = test_utils.generate_pair_client_model_data(constraints)
+    db.session.add(models.Application(**data[0]))
+    db.session.commit()
+    db_data = db.session.query(models.Application).one()
+
+    # --> Create requesst context
+    kwargs = {
+        'client_id': db_data.id,
+        'response_type': oauth_gt.AuthorisationCode.grand_type,
+        'state': str(uuid.uuid4()).replace('-', ''),
+        'redirect_uri': base64.urlsafe_b64encode(db_data.redirect_uri.encode()).decode()
+    }
+    auth_code = oauth_gt.AuthorisationCode(**kwargs)
+    assert auth_code.validate_request()
+
+    # Get response
+    signed_token = auth_code.response(db_data.id)
+    # --> Ensure returned structured is the one expected
+    assert all([key in signed_token] for key in ['code', 'state'])
+    assert signed_token['state'] == kwargs['state']
+
+    # Verify signature
+    private_jwk = jwk.JWK.from_json(config.Config.JWK_PRIVATE)
+    jws_obj = jws.JWS()
+    jws_obj.deserialize(signed_token['code'])
+    try:
+        jws_obj.verify(private_jwk)
+    except jws.InvalidJWSSignature as ex:
+        raise AssertionError('An invalid signature exception was raised when should have not') from ex
+
+    # Check payload is the one expected
+    payload = json.loads(jws_obj.payload.decode(config.Config.AUTH_CODE_ENCODING))
+    assert payload['client_id'] == kwargs['client_id']
+    assert payload['redirect_uri'] == kwargs['redirect_uri']
+    assert base64.urlsafe_b64decode(payload['redirect_uri'].
+                                    encode(config.Config.AUTH_CODE_ENCODING)).decode() == db_data.redirect_uri
+    auth_code_id = db.session.\
+        query(models.AuthorisationCode.id).\
+        order_by(models.AuthorisationCode.id.desc()).\
+        limit(1).\
+        scalar()
+    assert payload['code_id'] == auth_code_id
