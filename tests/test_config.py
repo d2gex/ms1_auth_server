@@ -14,6 +14,7 @@ def test_config_mixin():
     1) if not a real RSA private key is loaded => throw an exception
     2) Otherwise a JWK object is created so .load_private works as expected
     3) .init() fetch private key as pem and generate public key as pem, creates both public_jwk and private_jwk as JWK
+    4) Ensure 'alg' key is in bont public and private JWK
     '''
 
     try:
@@ -56,6 +57,10 @@ def test_config_mixin():
         assert config.Config.JWT_PUBLIC_KEY == config.ConfigMixin.public_key
         assert config.Config.public_jwk == public_jwk
         assert config.Config.private_jwk == private_jwk
+
+        # (4)
+        assert 'alg' in json.loads(config.Config.JWK_PUBLIC)
+        assert 'alg' in json.loads(config.Config.JWK_PRIVATE)
 
     finally:
         # Let's ensure whatever happens ConfigMixin remains untouched given that tests are run sequentially
