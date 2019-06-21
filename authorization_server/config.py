@@ -16,27 +16,25 @@ dot_env = load_dotenv(join(ROOT_PATH, '.env'))
 class ConfigMixin:
 
     private_key = None  # private key as PEM
+    private_jwk = None  # private key as a JWK - rfc7517
     public_key = None  # public key as PEM
-    jwk_set = None  # public key as as JWKSet
+    public_jwk = None  # public key as a JWK - rfc7517
 
     @classmethod
     def load_private_key(cls, filename):
         with open(filename, 'rb') as fh:
-            jws_obj = jwk.JWK.from_pem(fh.read())
-        if not jws_obj.has_private:
+            jwk_obj = jwk.JWK.from_pem(fh.read())
+        if not jwk_obj.has_private:
             raise errors.ConfigError(f"The filename '{filename}' does not contain a private key")
-        return jws_obj
+        return jwk_obj
 
     @classmethod
     def init(cls):
         jwk_obj = cls.load_private_key(os.getenv('JWT_RSA_PRIVATE_PATH'))
         cls.private_key = jwk_obj.export_to_pem(private_key=True, password=None).decode()
-
-        # Very important! To avoid accidents, ensure jwk_set is a JWKSet data structure with only public keys!!!!!
-        pub_key_dict = json.loads(jwk_obj.export_public())
-        cls.jwk_set = jwk.JWKSet.from_json(json.dumps({'keys': [pub_key_dict]}))
-
-        cls.public_key = jwk_obj.export_to_pem().decode()
+        cls.private_jwk = jwk_obj.export_private()
+        cls.public_key = jwk_obj.export_to_pem(private_key=False)
+        cls.public_jwk = jwk_obj.export_public()
 
 
 class Config(ConfigMixin):
@@ -46,8 +44,9 @@ class Config(ConfigMixin):
                               f"{os.getenv('DB_HOST')}/{os.getenv('DB')}"
 
     JWT_PRIVATE_KEY = ConfigMixin.private_key
+    JWK_PRIVATE = ConfigMixin.private_jwk
     JWT_PUBLIC_KEY = ConfigMixin.public_key
-    JWKS = ConfigMixin.jwk_set
+    JWK_PUBLIC = ConfigMixin.public_jwk
 
 
 class TestingConfig(Config):
