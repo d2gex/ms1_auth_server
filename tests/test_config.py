@@ -1,9 +1,8 @@
 import json
 import pytest
-import jwt
 
 from os.path import join
-from jwcrypto import jwk, jwt as jwtc
+from jwcrypto import jwt, jwk
 from authorization_server import utils, config, errors
 from tests import utils as test_utils
 from unittest.mock import patch
@@ -69,10 +68,10 @@ def test_public_key_verification():
 
     payload = {'user_id': 123}
     # Generated signed jwt token
-    jwt_obj = jwtc.JWT(header={"alg": "RS256"}, claims={'user_id': 123})
+    jwt_obj = jwt.JWT(header={"alg": "RS256"}, claims={'user_id': 123})
     jwt_obj.make_signed_token(jwk.JWK.from_json(config.Config.JWK_PRIVATE))
     signed_jwt_token = jwt_obj.serialize()
 
     # Deconstruct the signed jwt token by decrypting it with the public key
-    deconstructed_jwt_token = jwtc.JWT(key=jwk.JWK.from_json(config.Config.JWK_PUBLIC), jwt=signed_jwt_token)
+    deconstructed_jwt_token = jwt.JWT(key=jwk.JWK.from_json(config.Config.JWK_PUBLIC), jwt=signed_jwt_token)
     assert json.loads(deconstructed_jwt_token.claims) == payload
