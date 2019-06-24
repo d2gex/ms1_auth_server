@@ -1,0 +1,54 @@
+language: python
+
+matrix:
+  fast_finish: true
+  include:
+    - python: 3.6
+
+dist: trusty
+
+addons:
+  apt:
+    sources:
+    - mysql-5.7-trusty
+    packages:
+    - mysql-server
+    - mysql-client
+
+services:
+  - mysql
+
+install:
+  - pip install -r requirements.txt
+  - pip install mysqlclient
+
+before_script:
+  - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('${NEW_ROOT_PASSWORD}')
+    where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
+  - sudo mysql_upgrade -u root -p$NEW_ROOT_PASSWORD
+  - sudo service mysql restart
+  - mysql -u root -p$NEW_ROOT_PASSWORD -e "CREATE DATABASE ${DB};"
+  - mysql -u root -p$NEW_ROOT_PASSWORD -e "CREATE USER '${DB_USER}'@'${DB_HOST}' IDENTIFIED
+    BY '${DB_PASSWORD}';"
+  - mysql -u root -p$NEW_ROOT_PASSWORD -e "GRANT ALL ON ${DB}.* TO '${DB_USER}'@'${DB_HOST}';"
+  - flask db upgrade
+
+script:
+  - pytest -svx
+
+branches:
+  - only:
+    - master
+
+env:
+  global:
+    - FLASK_APP='authorization_server/app'
+    - FLASK_ENV='development'
+    - DB_HOST='localhost'
+    - DB_PORT='3306'
+    - secure: 3+1Efs6POPbmkiEJREgfNRjo00f7NspMI+bGhmys50rfG5VyPp3NCGwkTDYwYYMQcryqsQxIJJJmE7UCfDY7j4NBUHk4c0vKj2T9IDGwKzX7I1ccfNmEOgBDVXR64yig5RFiDDaACrmLN3B3fFkzA78EGu1TWimL6eHxWJF7xKPTogLyz8yt0YwVeYYnMuFssvASP4k1Aovj+/8Gz2rYdYzKm/Son83nchYlN+HNA6Xr/ns0w2saq0WdflhjQlBSJkj194phLFfByuD8TMAEXdMDHjWca/K8rxADnfQkSLHwjHsdAM09OmUEg9BPDYaucEnOdjA0OrsUW2LfzyLbbPwI4b4KcNbJg/u2uRbx+p5y0XjNkd//18lrKONLMXSWPY4n0KL/1s1k0pI6+qySGt1cZQVm5Dsi6x/6QMlKQnAtQ8dLtyLl6+KrHys0pI6GF5V4ITuEtj+bzVlyxfiyz8spqhNLt1IMBf0aoX9Y0aqGuHs8wfYFjYoTg1bKelPw8meSjK8lRy+0S04pt5AY83hZ1cIVshvhlR50WnbWonZDjPZvJP7AN0WQGZlc70gtuzNx5yQhwj6yleADhi8aJW2cUwhrq2/uoM000KifOOIgaGfr/wLcyuVYonvI78zGnJcZCXCY7nE9c0EjqiwLB/ZwXui8xhHf+31NifO8mbg=
+    - secure: ZAPy3SF3QXNoTH9PmerQCXpuMGIURdwH/LPwUHF2KcCm0I6xPBc5FCbY5mx17mTqJjxpxTpQooj2jcJKf11O7t1hqjgG6kHf9Ig3NT8b1LvG731OMqFilL1yifz6Q7DesuAMAOeW14dJ2m8P7VrT3p16klNDwMVZN3HaBpHLW7hQ+alSb0pSSrPNECJKCs25E6CN67XZxXD/gQKBsDaDfR+xNelXgjr8kPgHe2Gze+OIf68kXtPR6v/sncS0ZkIjpXgacm9bcwfXku5PzyBwTpCSwpjwm3q0Kc4JeTOys8kKlTTSA+s0WD/YwoLgHDRApb+M4FP9xG3+Qd3EC7zLArec6BmNCfnnFz8IwpnV5d3vfG9taX7/1Uqfo7L2gGSYinX/1PfSgCRMpSEU5a8PsnNgbPJpT1AQY/I1/OEtsFcizLHHefw0SIuB+MUvSPlhSM2comgLMX0P1PatMwUuSEnPeU6zRdGjZyc4E8yUgSlu8jQV0AEvZHbZx4+YP6FhCDHq41VGZuvNWSmoBFCrrN9Sn6jKsBgfCRD1zAmVASlQ3ea3Iga6+wg8jKJ5X8dyUFX+khNC6ZjRbxWNSQ6j2TTKd5SRvDVrnkGRmpUt7Qwds2O3oV6PfcNSqlgHZwcSJjy4nilMx0v5egs6gE75tWUpoPQoqcO2TwhbkuVIWyk=
+    - secure: aDXNuw9OtUC1g20SG5Yb9TLENZ5Mfy+R1tfB430HfKxr+JJEwjgJfUzm8JHivmqgl+NquqSxSsdP4qgN8YaPHnW5A3mCcL21d4d3vyZqzYHNDoAZXi7rN9cWYWZoJ+uqGK4Ek1+eEhsfSAC6CNk30Zd4KJSVgxX3hwQX2sNt1mIUomEgfnpudd/h2kSItiVlqn3mHQzw/YEvpBaij0ErqUGM2XdMO4nAqMCRctBjHuGoXQfGjs/KE3bARFA/J0qxQJX2F7ygpR7iaX/ck1keeyJR5miEMDCSk7QqAIOidpKmDcSmTefEWpGRyh3S5hIgOdE3qvp1eRmV3TBwctESAMkliuz+8VTw2MM8u3Xz9pVIPpjDtQBDUJXObyCo48AqVI9yU2st/2GlFVEUnGsIDpHDWHBdrWqnEUlxz3teunrKTRYGGs0BLwvtzI1pFde2CpHz2WOvsnWvKNbUzHwNCbD+dKa3tIa8XeLvEZ+MJwTEcNZyYOs7xPdcItY3oE+A+Yn3+icb8TdMDjh6GJc01kMRzNg/AYxOJ+joC4Q+UpHpTWgn8E6v4r86T+Fg9KF1LgxrJeBm1JCHXggQ53kK18Hwpbyqg03Plu6tIZEL3uMQwZRu3bmRl0HrlD1Cy6TBcHO8uXagcrjCona523KMmrSdlI4A+/GDTIAhdneZbF8=
+    - secure: jWv0moKUdUwTL/5VXda8/+MLiEDGNz4gzfw9rPfWsh+jzgowoKRw7Y4P62VqqU00q2B83CE1VaDLPUrG+ZBw94+dBS/6wJROq8Qi8nYgC6Z89BvMgkxMKkGRQ/LC0rHR8NAiYOGyUSuFx7KvQNeS+tsiVOu+ngbatn4rObEDyGXuzIuJlANT3i+JsD55cbH9ot2OGbNzz2ami/3MqeXyEH6FFSDjoUm4wSIYFf59v3Pp2QRA4fwY+OaybIOSaZ2o9mKCqEdvX+eCW5gPHmdo9zHszHWTIACK2N3E3pYO7+YMO/ttel+3VLQXAZeUJkAE+5YWwhBQsf/ZtMt5LlXH2I8YdDISbAVjqmluAo8Ueyh+P/qvkmWEpdsaMaGnSJSsqNwANDsRjG0h0lCkW98WmXJlCBSEDyQLn9PE88SDpyCsAnd0mqGG2AsRqlCkl2jwnnuFuDZfW8/LpftP4quMLUKA0WvPnxN873YTRdHqtXGIn15c+5b7mQPCVBu9HYq9Tr2EBcn8P1Gx1tnMOsY6S+osUjc2IYr1n6ApTVsGPH1+ftImDBN3HntxosIhr+5lyZWFPBVClQTmd1hJhgg3GPcPwOqst38fD5EJ3CPqtN7S+7xJ0iQun4WyDkGLbfehFgeND94CQ0OImRD6CFSnTqNoEPfyHrq3HKHv6c65oLg=
+    - secure: WHPeVHHX8hRVC9XSIhZNtMSOqll0fL3GKgLuhtCsmac5A9u+UMQBEJppyfV2A+zvKaBTAQKLoafW3qPzLNV/X2f91EZOYakZ+r15U+eDmEvSlPBYz8u9ILaxCGe9Y5++hDytBfD//AJpeh44ttemlECVXpMSkBCbFu6kgavUMevgfm4YMht9/JdwVBGg9zz5Ai8eBzuRatFZw9GYAvzMoOTy8QeOgorAOTXmhqxZVKDmdJV96074p608dSX7JwuAio15emQ73Rdja/0BBebAPZgjxhLfMKwViUxEu1Dh6yJPMYO0ox/KJzQwTmJXlyhqDtcRPIn6swEYVPkm3X1RptDXFqlCrReISEdC4OvqH1LI/mtqS4Ey+/fdZUKF5y4XfvaI5Mx0pON/LkjTOGyCNO1yCWdkctklMMdaOpootr0hVa0lW0UiuYxjvtJKzsU9H+PYS32Zhz7kdrM0mZzHW9VWB0OOc8bMDnrTsAjjB4u2KwB56vdps/P4/6PsIk/fjWiLfErPQhDmrD0o1sfVryQQ2UocMmKxXyyNXVlG4RfoEHT69EOPEtXCVfNJCMHPuipZ6O4Glq99IRmtgNpN2VmPobfN/8ntRbufYcc9qtIYf7/H1oirwKt3OuX/qB26XG9mbMkmSiuIo5rlW9keiROG5NRqCxVABq+epH46ufI=
+    - secure: CdgyNSXBlbhcb8ubm8ZQwAXf/VUMKJXwU+hjM1cDTUg1F//2guoD48iQspHl1rsqTrqJvyzG3S6+D0jQIRl+7JoZpjh5eNLfcNjJIgY7xt5zaVQ0sgwwGkBMz+CuYwv9rIRVN5w0NwsnsJ4ozPw/qK/DARJLdwVQstxRYLAMyrOMmRlvCE5qKI7JAo5gmPleL5NtUAi4iS4/QMfLlHB8I/PiZMeiKgVuFb9zlBKrYAJg76cQenANoCPoy+L3WA9In4w+3TlWoBZ5upJWOq1Qcf0sWzvSAQCyPi+VpOWBi3E1QlWRcE6XgWqpHoHDFQRqmd4nTv7dgPwElJNEocfdmESPDnH+g80JaHN4RHOPWNcr1cjtTpKM0qPJzrwn/KtU4Db0CkRstVLXFdlNFQ4ZZlvZDCeH8m2kRl/DmRjM+2CerVv2FYFhfJYONvaR1j/eriI80/3ffEAf1UKY+iNAqQFkkaOkWPsS8KeP+2Uhdh9VFnR29P52Uu0kMLk6VpB2+ncOuSBY/d89VPBsTFRKjleNpW21ZVEkZzeiFW+d81r+djuw72tSzetcH6AhS2n7B8GNibC2f60rKqdkhiFa6kpUi8xwQmkODH6DzE7o/3Lo2VFwenEhJlPicbFMzHYY2i118QPg4fUqxA3FpDViteEQK+3u5pxW4CR6Ro5Y8BA=
