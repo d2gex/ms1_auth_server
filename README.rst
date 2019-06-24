@@ -4,7 +4,7 @@
 
 This is this first of the 3 microservices currently being implemented that will abstract the three main entities
 typically interacting in a oAuth2 protocol: **Authorisation Server**, **Resource Server** and **Client Application**.
-They all will be deployed using Travis CI and served through AWS SDK (EC2, RDS and DocumentDB).
+They all will be deployed using Travis CI and served through **AWS SDK** (EC2, RDS and DocumentDB).
 
 The architecture across the three microservices will be kept the same for maintainability purposes, using Nginx as Web
 Server, Gunicorn as WSGI server and Flask/Flask Restplus as Web app and REST API. Additionally the Authorisation Server
@@ -37,4 +37,10 @@ Grand Type and provides a web and an API interface as follows:
     c.  Authorisation: clients will be granted first with an Authorisation code via an http redirection and then
         a token to be used with the Resource server.
 
-The REST API is being crafted using Open Api -Swagger- for easy end-user documentation and testing.
+The REST API is being crafted using Open Api -Swagger- for easy end-user documentation, testing and getting-used to.
+An example for the *Registration* resource is shown below:
+
+
+.. image:: docs/images/swagger_sample.png
+    :alt: Example of Registration resource
+    :target: #
