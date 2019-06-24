@@ -30,7 +30,7 @@ class Registration(Resource):
     @api.response_error(api_errors.Conflict409Error(message=api_utils.RESPONSE_409))
     @api.response(201, json.dumps(api_utils.RESPONSE_201_REGISTRATION_POST), body=False)
     def post(self):
-        '''Register a new application client
+        '''Register a new client application
         '''
 
         if not isinstance(api.payload, dict):

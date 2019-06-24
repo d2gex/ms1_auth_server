@@ -26,7 +26,7 @@ class Verification(Resource):
     @api.response_error(api_errors.Conflict409Error(message=api_utils.RESPONSE_409))
     @api.response(201, json.dumps(api_utils.RESPONSE_201_VERIFICATION_POST), body=False)
     def post(self):
-        '''Register a new application client
+        '''Verify a client application registration given a one-off token provided a registration time
         '''
 
         if not isinstance(api.payload, dict):
