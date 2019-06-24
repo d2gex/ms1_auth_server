@@ -2,6 +2,12 @@
 ``oAuth2 Protocol Implementation``: Authorisation Server
 ==========================================================
 
+.. image:: https://travis-ci.com/d2gex/ms1_auth_server.svg?branch=master
+    :target: https://travis-ci.com/d2gex/ms1_auth_server
+
+.. image:: https://img.shields.io/badge/coverage-98%25-brightgreen.svg
+    :target: #
+
 This is this first of the 3 microservices currently being implemented that will abstract the three main entities
 typically interacting in a oAuth2 protocol: **Authorisation Server**, **Resource Server** and **Client Application**.
 They all will be deployed using Travis CI and served through **AWS SDK** (EC2, RDS and DocumentDB).
