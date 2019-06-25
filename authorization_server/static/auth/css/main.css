@@ -1,3 +1,42 @@
 .page-wrap {
     min-height: 100vh;
 }
+
+.signup-form hr {
+    margin-bottom: 0px;
+}
+
+.web_url {
+    padding: 0;
+    display: block;
+    text-align: left;
+    font-size: 80%;
+}
+.buttons-row {
+    overflow: hidden;
+}
+
+input[type="submit"].btn-block {
+    width: 140px;
+}
+
+.signup-form .btn {
+    margin-top: 0;
+}
+
+.btn-primary {
+    background: #5fcaba;
+}
+
+.btn-primary:hover, .btn-primary:focus {
+    background: #3fc0ad;
+    outline: none !important;
+}
+.signup-form .text-warning {
+    display: block;
+    text-align: left;
+}
+.list-group-item {
+    font-size: 90%;
+    text-align: left;
+}

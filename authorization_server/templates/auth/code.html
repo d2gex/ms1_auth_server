@@ -4,14 +4,9 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('auth.static', filename='css/main.css') }}">
 {% endblock header %}
 {% block content %}
-    <div class="page-wrap d-flex flex-row align-items-center">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-md-12 text-center">
-                    <span class="display-1 d-block">400</span>
-                    <div class="mb-4 lead">Bad Request</div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {% if error %}
+        {% include 'auth/include/400_bad_request.html' %}
+    {% else %}
+        {% include 'auth/include/200_authorisation_code.html' %}
+    {% endif %}
 {% endblock content %}
