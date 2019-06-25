@@ -27,7 +27,9 @@ def create_app(config_class=config.Config):
 
     from authorization_server.frontend.views import frontend
     from authorization_server.apis.handler import api_v1
+    from authorization_server.auth.views import auth
     app.register_blueprint(frontend, url_prefix='/')
     app.register_blueprint(api_v1, url_prefix='/api')
+    app.register_blueprint(auth, url_prefix='/auth')
 
     return app
