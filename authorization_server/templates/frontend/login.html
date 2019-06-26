@@ -1,6 +1,10 @@
 {% extends 'layout.html' %}
 {% block header %}
-    <link rel="stylesheet" type="text/css" href="{{ url_for('frontend.static', filename='css/main.css') }}">
+    {% if client_app %}
+        <link rel="stylesheet" type="text/css" href="{{ url_for('auth.static', filename='css/main.css') }}">
+    {% else %}
+        <link rel="stylesheet" type="text/css" href="{{ url_for('frontend.static', filename='css/main.css') }}">
+    {% endif %}
     <script type="text/javascript" src="{{ url_for('frontend.static', filename='js/validators.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('frontend.static', filename='js/include/dialog.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('frontend.static', filename='js/login.js') }}"></script>
@@ -9,8 +13,12 @@
     <div class="signup-form">
         <form id="signin-form" method="POST" action="">
             {{ form.hidden_tag() }}
-            <h2>Sign In</h2>
-            <hr>
+            {# Show Client App details section when Grand Type Login #}
+            {% if client_app %}
+                {% include 'include/client_app_details.html' %}
+            {% else %}
+                {% include 'frontend/include/login_heading.html' %}
+            {% endif %}
             <div class="form-group">
                 {% include 'frontend/include/message.html' %}
             </div>
@@ -36,8 +44,19 @@
                     {{ form.password(class="form-control", id="password", placeholder="Password") }}
                 {% endif %}
             </div>
-            <div class="form-group">
-                {{ form.submit(class="btn btn-lg btn-primary btn-block", id='sing_in') }}
+            {# Show the Scopes section when Grand Type Login #}
+            {% if client_app %}
+                <div class="form-group buttons-row">
+                    {% include 'include/client_request_scope.html' %}
+                </div>
+            {% endif %}
+            {# Show Allow-Cancel buttons pair section when Grand Type Login #}
+            <div class="form-group  buttons-row">
+                {% if client_app %}
+                    {% include 'include/grand_type_allow_cancel_buttons.html' %}
+                {% else %}
+                    {% include 'frontend/include/login_button.html' %}
+                {% endif %}
             </div>
             <div class="clearfix">
                 <a href="#" id='forgot_password' class="pull-right">Forgot Password?</a>

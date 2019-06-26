@@ -35,4 +35,12 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password',
                              validators=[Length(min=8, max=15,
                                                 message=INVALID_PASSWORD_ERROR)])
+
+
+class SimpleLoginForm(LoginForm):
     submit = SubmitField('Sign In')
+
+
+class GrandTypeLoginForm(LoginForm):
+    cancel = SubmitField('Cancel')
+    allow = SubmitField('Allow')

@@ -1,7 +1,7 @@
-from flask import Blueprint, render_template, redirect,  url_for, flash
+from flask import Blueprint, render_template, request, redirect,  url_for, flash
 from flask_login import login_user, logout_user, current_user, login_required
-from authorization_server.frontend.forms import RegistrationForm, LoginForm
-from authorization_server import models
+from authorization_server.frontend.forms import RegistrationForm, SimpleLoginForm, GrandTypeLoginForm
+from authorization_server import models, oauth_grand_type as oauth_gt
 from authorization_server.app import db, bcrypt
 
 frontend = Blueprint('frontend', __name__, static_folder='../static/frontend')
@@ -24,9 +24,17 @@ def register():
 
 @frontend.route('/login', methods=['GET', 'POST'])
 def login():
+    client_app = None
+    is_grand_type = request.args.get('grand_type')
+    if is_grand_type == 'code':
+        auth_code = oauth_gt.AuthorisationCode(**request.args)
+        client_app = {'name': 'Application Name', 'web_url': 'https://www.bbc.co.uk'}
+        form = GrandTypeLoginForm()
+    else:
+        form = SimpleLoginForm()
+
     if current_user.is_authenticated:
         return redirect(url_for('frontend.profile'))
-    form = LoginForm()
     if form.validate_on_submit():
         user = db.session.query(models.User).filter(models.User.email == form.email.data).first()
         if not user or not bcrypt.check_password_hash(user.password, form.password.data):
@@ -34,7 +42,7 @@ def login():
         else:
             login_user(user)
             return redirect(url_for('frontend.profile'))
-    return render_template('frontend/login.html', form=form)
+    return render_template('frontend/login.html', form=form, client_app=client_app, test=type(is_grand_type))
 
 
 @frontend.route("/logout")
