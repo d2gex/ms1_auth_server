@@ -40,3 +40,10 @@ input[type="submit"].btn-block {
     font-size: 90%;
     text-align: left;
 }
+
+.signup-form .text-danger {
+    display: inline-block;
+    text-align: left;
+    font-size: 80%;
+    line-height: normal;
+}
