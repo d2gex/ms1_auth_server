@@ -108,7 +108,7 @@ def test_valid_request():
     auth_code = oauth_gt.AuthorisationCode(**kwargs)
     success = auth_code.validate_request()
     assert success is True
-    assert auth_code.id == db_data.id
+    assert auth_code.client_id == db_data.id
     assert auth_code.name == db_data.name
     assert auth_code.description == db_data.description
     assert auth_code.web_url == db_data.web_url

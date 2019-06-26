@@ -26,14 +26,20 @@ class AuthorisationCode:
 
     def __init__(self, **kwargs):
         '''
-        :param kwargs: possible arguments are client_id, redirect_uri, response_type, state and scope
+        :param kwargs: possible expected arguments are client_id, redirect_uri, response_type, state and scope
         '''
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-        self.id = None
+
+        self.client_id = None
         self.name = None
         self.description = None
         self.web_url = None
+        self.redirect_uri = None
+        self.response_type = None
+        self.state = None
+        self.scope = None
+
+        for key, value in kwargs.items():
+            setattr(self, key, value if not getattr(self, key, None) else None)
 
     def validate_request(self):
         '''Validate a client authorisation request by returning an error if something unexpected was received.
@@ -48,21 +54,19 @@ class AuthorisationCode:
             'error_description': None
         }
 
-        client_id = getattr(self, 'client_id', None)
-        if not client_id:
+        if not self.client_id:
             errors['error_description'] = 'The client application provided an invalid identifier'
             return errors
 
         try:
-            client = db.session.query(models.Application).filter_by(id=client_id).one()
+            client = db.session.query(models.Application).filter_by(id=self.client_id).one()
         except exc.NoResultFound:
             errors['error_description'] = 'This client application is not registered with us'
             return errors
 
-        redirect_uri = getattr(self, 'redirect_uri', None)
-        if redirect_uri:
+        if self.redirect_uri:
             try:
-                decoded_uri = base64.urlsafe_b64decode(redirect_uri.encode()).decode()
+                decoded_uri = base64.urlsafe_b64decode(self.redirect_uri.encode()).decode()
             except binascii.Error:
                 errors['error_description'] = f"The client application's 'redirect_uri' argument is invalid"
             else:
@@ -71,23 +75,20 @@ class AuthorisationCode:
             if errors['error_description']:
                 return errors
 
-        response_type = getattr(self, 'response_type', None)
-        if not response_type or response_type != self.grand_type:
+        if not self.response_type or self.response_type != self.grand_type:
             errors['addressee'] = CLIENT_ERROR
             errors['code'] = 200
             errors['error'] = CLIENT_UNSUPPORTED_RESPONSE_TYPE_ERROR
-            errors['error_description'] = f"'response_type' argument '{response_type}' is not supported"
+            errors['error_description'] = f"'response_type' argument '{self.response_type}' is not supported"
             return errors
 
-        state = getattr(self, 'state', None)
-        if state is None or not state.strip():
+        if self.state is None or not self.state.strip():
             errors['addressee'] = CLIENT_ERROR
             errors['code'] = 200
             errors['error'] = CLIENT_INVALID_REQUEST_ERROR
-            errors['error_description'] = f"'state' argument '{state}' is invalid. A non-empty checksum is necessary"
+            errors['error_description'] = f"'state' argument '{self.state}' is invalid. A non-empty checksum is necessary"
             return errors
 
-        self.id = client_id
         self.name = client.name
         self.description = client.description
         self.web_url = client.web_url
