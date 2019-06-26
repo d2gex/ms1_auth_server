@@ -37,6 +37,7 @@ class AuthorisationCode:
         self.response_type = None
         self.state = None
         self.scope = None
+        self.errors = None
 
         for key, value in kwargs.items():
             setattr(self, key, value if not getattr(self, key, None) else None)
@@ -56,13 +57,15 @@ class AuthorisationCode:
 
         if not self.client_id:
             errors['error_description'] = 'The client application provided an invalid identifier'
-            return errors
+            self.errors = errors
+            return False
 
         try:
             client = db.session.query(models.Application).filter_by(id=self.client_id).one()
         except exc.NoResultFound:
             errors['error_description'] = 'This client application is not registered with us'
-            return errors
+            self.errors = errors
+            return False
 
         if self.redirect_uri:
             try:
@@ -73,21 +76,25 @@ class AuthorisationCode:
                 if decoded_uri != client.redirect_uri:
                     errors['error_description'] = f"The client application's 'redirect_uri' is not registered with us"
             if errors['error_description']:
-                return errors
+                self.errors = errors
+                return False
 
         if not self.response_type or self.response_type != self.grand_type:
             errors['addressee'] = CLIENT_ERROR
             errors['code'] = 200
             errors['error'] = CLIENT_UNSUPPORTED_RESPONSE_TYPE_ERROR
             errors['error_description'] = f"'response_type' argument '{self.response_type}' is not supported"
-            return errors
+            self.errors = errors
+            return False
 
         if self.state is None or not self.state.strip():
             errors['addressee'] = CLIENT_ERROR
             errors['code'] = 200
             errors['error'] = CLIENT_INVALID_REQUEST_ERROR
-            errors['error_description'] = f"'state' argument '{self.state}' is invalid. A non-empty checksum is necessary"
-            return errors
+            errors['error_description'] = f"'state' argument '{self.state}' is invalid. A non-empty checksum " \
+                                          f"is necessary"
+            self.errors = errors
+            return False
 
         self.name = client.name
         self.description = client.description
