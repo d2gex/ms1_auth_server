@@ -108,6 +108,11 @@ def test_valid_request():
     auth_code = oauth_gt.AuthorisationCode(**kwargs)
     success = auth_code.validate_request()
     assert success is True
+    assert auth_code.id == db_data.id
+    assert auth_code.name == db_data.name
+    assert auth_code.description == db_data.description
+    assert auth_code.web_url == db_data.web_url
+    assert auth_code.redirect_uri == db_data.redirect_uri
 
 
 @test_utils.reset_database()
@@ -131,7 +136,7 @@ def test_response():
     db.session.commit()
     db_data = db.session.query(models.Application).one()
 
-    # --> Create requesst context
+    # --> Create request context
     kwargs = {
         'client_id': db_data.id,
         'response_type': oauth_gt.AuthorisationCode.grand_type,

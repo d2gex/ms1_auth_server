@@ -25,15 +25,21 @@ class AuthorisationCode:
     grand_type = 'code'
 
     def __init__(self, **kwargs):
+        '''
+        :param kwargs: possible arguments are client_id, redirect_uri, response_type, state and scope
+        '''
         for key, value in kwargs.items():
             setattr(self, key, value)
+        self.id = None
+        self.name = None
+        self.description = None
+        self.web_url = None
 
     def validate_request(self):
         '''Validate a client authorisation request by returning an error if something unexpected was received.
         The errors have two categories:
         1) Errors that are addressed to the resource owner => 400
         2) Errors that are addressed to the client application => 200
-        The expected fields are: client_id, response_type, state and redirect_url
         '''
         errors = {
             'addressee': RESOURCE_OWNER_ERROR,
@@ -81,6 +87,12 @@ class AuthorisationCode:
             errors['error_description'] = f"'state' argument '{state}' is invalid. A non-empty checksum is necessary"
             return errors
 
+        self.id = client_id
+        self.name = client.name
+        self.description = client.description
+        self.web_url = client.web_url
+        self.redirect_uri = client.redirect_uri
+
         return True
 
     def response(self, client_id):
@@ -96,7 +108,7 @@ class AuthorisationCode:
             strftime("%d-%m-%Y %H:%M:%S")
         payload = {
             'client_id': self.client_id,
-            'redirect_uri': self.redirect_uri,
+            'redirect_uri': base64.urlsafe_b64encode(self.redirect_uri.encode()).decode(),
             'expiration_date': exp_date,
             'code_id': auth_code.id
         }
