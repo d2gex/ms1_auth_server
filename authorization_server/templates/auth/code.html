@@ -4,7 +4,7 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('auth.static', filename='css/main.css') }}">
 {% endblock header %}
 {% block content %}
-    {% if error %}
+    {% if errors %}
         {% include 'auth/include/400_bad_request.html' %}
     {% else %}
         {% include 'auth/include/200_authorisation_code.html' %}

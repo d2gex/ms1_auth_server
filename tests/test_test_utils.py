@@ -108,28 +108,57 @@ def test_generate_pair_client_model_data():
     constraints['id'] = False
     rows = test_utils.generate_pair_client_model_data(constraints)
     assert rows[0]['id'] == rows[-1]['id']
+    assert rows[0]['client_secret'] == rows[1]['client_secret']
 
     # (3)
     constraints['reg_token'] = False
     rows = test_utils.generate_pair_client_model_data(constraints)
     assert rows[0]['reg_token'] == rows[-1]['reg_token']
+    assert rows[0]['client_secret'] == rows[1]['client_secret']
 
     # (4)
     constraints['email'] = False
     rows = test_utils.generate_pair_client_model_data(constraints)
     assert rows[0]['email'] == rows[-1]['email']
+    assert rows[0]['client_secret'] == rows[1]['client_secret']
 
     # (5)
     constraints['web_url'] = False
     rows = test_utils.generate_pair_client_model_data(constraints)
     assert rows[0]['web_url'] == rows[-1]['web_url']
+    assert rows[0]['client_secret'] == rows[1]['client_secret']
 
     # (6)
     constraints['redirect_uri'] = False
     rows = test_utils.generate_pair_client_model_data(constraints)
     assert rows[0]['redirect_uri'] == rows[-1]['redirect_uri']
+    assert rows[0]['client_secret'] == rows[1]['client_secret']
 
     # (7)
     constraints['description'] = False
     rows = test_utils.generate_pair_client_model_data(constraints)
     assert not any([rows[0]['description'], rows[-1]['description']])
+    assert rows[0]['client_secret'] == rows[1]['client_secret']
+
+
+def test_generate_model_user_instance():
+    '''Test that when generating a sample user, either random or not has all the required fields
+    '''
+
+    # (1.1) Ensure the expected keywords are produced
+    assert all([keyword in test_utils.generate_model_user_instance(random=True).items()]
+               for keyword in ['firstname', 'lastname', 'email', 'password'])
+
+    # (1.2) Ensure values produced are unique
+    unique_values = set()
+    num_attempts = 50
+    for _ in range(num_attempts):
+        unique_values.update({value for key, value in test_utils.generate_model_user_instance(random=True).items()})
+    assert num_attempts * 4 == len(unique_values)
+
+    # (1.3) Ensure 1/4 of the values are of email-type.
+    assert len([x for x in unique_values if '@' in x]) == num_attempts
+
+    # (2.1) Ensure the expected keywords are produced
+    assert all([keyword in test_utils.generate_model_user_instance().items()]
+               for keyword in ['firstname', 'lastname', 'email', 'password'])

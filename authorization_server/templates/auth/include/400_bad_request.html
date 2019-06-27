@@ -3,7 +3,10 @@
         <div class="row justify-content-center">
             <div class="col-md-12 text-center">
                 <span class="display-1 d-block">400</span>
-                <div class="mb-4 lead">Bad Request</div>
+                <div class="mb-4 lead">Bad Request: {{ errors['error_description'] }}</div>
+                <span class="display-5 d-block">Don't worry! This is an error that occurred when the web page you were
+                    visiting before was trying to redirect you to this page for your permissions approval. You can close
+                    this page now</span>
             </div>
         </div>
     </div>

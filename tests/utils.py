@@ -51,7 +51,8 @@ def generate_pair_client_model_data(constraints):
             'web_url': domain,
             'redirect_uri': f"{domain}/callback",
             'name': 'App Name',
-            'description': 'App Description...'
+            'description': 'App Description...',
+            'client_secret': 'abcD1234'
         })
 
     if all(value for key, value in constraints.items()):
@@ -79,3 +80,19 @@ def generate_pair_client_model_data(constraints):
         rows[0]['description'] = rows[-1]['description'] = None
 
     return rows
+
+
+def generate_model_user_instance(random=False):
+    if random:
+        return {
+            'firstname': secrets.token_hex(10),
+            'lastname': secrets.token_hex(10),
+            'email': f"{secrets.token_hex(10)}@example.com",
+            'password': secrets.token_hex(10)
+        }
+    return {
+        'firstname': 'First Name',
+        'lastname': 'Last Name',
+        'email': "firstname.lastname@example.com",
+        'password': 'abcD1234'
+    }
