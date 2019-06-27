@@ -24,9 +24,9 @@ class AuthorisationCode:
 
     grand_type = 'code'
 
-    def __init__(self, **kwargs):
+    def __init__(self, kwargs):
         '''
-        :param kwargs: possible expected arguments are client_id, redirect_uri, response_type, state and scope
+        :param kwargs: MultiDict like data structure
         '''
 
         self.client_id = None
@@ -39,8 +39,8 @@ class AuthorisationCode:
         self.scope = None
         self.errors = None
 
-        for key, value in kwargs.items():
-            setattr(self, key, value if not getattr(self, key, None) else None)
+        for key in kwargs:
+            setattr(self, key, kwargs[key] if not getattr(self, key, None) else None)
 
     def validate_request(self):
         '''Validate a client authorisation request by returning an error if something unexpected was received.

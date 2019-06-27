@@ -22,7 +22,7 @@ def test_valid_request():
     kwargs = {}
 
     # (1.1)
-    auth_code = oauth_gt.AuthorisationCode(**kwargs)
+    auth_code = oauth_gt.AuthorisationCode(kwargs)
     assert not auth_code.validate_request()
     errors = auth_code.errors
     assert errors['addressee'] == oauth_gt.RESOURCE_OWNER_ERROR
@@ -31,7 +31,7 @@ def test_valid_request():
 
     # (1.2)
     kwargs['client_id'] = ''
-    auth_code = oauth_gt.AuthorisationCode(**kwargs)
+    auth_code = oauth_gt.AuthorisationCode(kwargs)
     assert not auth_code.validate_request()
     errors = auth_code.errors
     assert errors['addressee'] == oauth_gt.RESOURCE_OWNER_ERROR
@@ -40,7 +40,7 @@ def test_valid_request():
 
     # (1.3)
     kwargs['client_id'] = 'something'
-    auth_code = oauth_gt.AuthorisationCode(**kwargs)
+    auth_code = oauth_gt.AuthorisationCode(kwargs)
     assert not auth_code.validate_request()
     errors = auth_code.errors
     assert errors['addressee'] == oauth_gt.RESOURCE_OWNER_ERROR
@@ -67,7 +67,7 @@ def test_valid_request():
     # -->(2.1)
     kwargs['client_id'] = db_data.id
     kwargs['redirect_uri'] = 'this is not a base64url encoded'
-    auth_code = oauth_gt.AuthorisationCode(**kwargs)
+    auth_code = oauth_gt.AuthorisationCode(kwargs)
     assert not auth_code.validate_request()
     errors = auth_code.errors
     assert errors['addressee'] == oauth_gt.RESOURCE_OWNER_ERROR
@@ -76,7 +76,7 @@ def test_valid_request():
 
     # --> (2.2)
     kwargs['redirect_uri'] = base64.urlsafe_b64encode(b'https://www.donotexist.com').decode()
-    auth_code = oauth_gt.AuthorisationCode(**kwargs)
+    auth_code = oauth_gt.AuthorisationCode(kwargs)
     assert not auth_code.validate_request()
     errors = auth_code.errors
     assert errors['addressee'] == oauth_gt.RESOURCE_OWNER_ERROR
@@ -86,7 +86,7 @@ def test_valid_request():
     # (3)
     kwargs['redirect_uri'] = base64.urlsafe_b64encode(db_data.redirect_uri.encode()).decode()
     kwargs['response_type'] = 'unexpected value'
-    auth_code = oauth_gt.AuthorisationCode(**kwargs)
+    auth_code = oauth_gt.AuthorisationCode(kwargs)
     assert not auth_code.validate_request()
     errors = auth_code.errors
     assert errors['addressee'] == oauth_gt.CLIENT_ERROR
@@ -95,7 +95,7 @@ def test_valid_request():
 
     # (4.1)
     kwargs['response_type'] = oauth_gt.AuthorisationCode.grand_type
-    auth_code = oauth_gt.AuthorisationCode(**kwargs)
+    auth_code = oauth_gt.AuthorisationCode(kwargs)
     assert not auth_code.validate_request()
     errors = auth_code.errors
     assert errors['addressee'] == oauth_gt.CLIENT_ERROR
@@ -104,7 +104,7 @@ def test_valid_request():
 
     # (4.2)
     kwargs['state'] = "    "
-    auth_code = oauth_gt.AuthorisationCode(**kwargs)
+    auth_code = oauth_gt.AuthorisationCode(kwargs)
     assert not auth_code.validate_request()
     errors = auth_code.errors
     assert errors['addressee'] == oauth_gt.CLIENT_ERROR
@@ -113,7 +113,7 @@ def test_valid_request():
 
     # (5)
     kwargs['state'] = 'something'
-    auth_code = oauth_gt.AuthorisationCode(**kwargs)
+    auth_code = oauth_gt.AuthorisationCode(kwargs)
     assert auth_code.validate_request()
     assert auth_code.client_id == db_data.id
     assert auth_code.name == db_data.name
@@ -150,7 +150,7 @@ def test_response():
         'state': str(uuid.uuid4()).replace('-', ''),
         'redirect_uri': base64.urlsafe_b64encode(db_data.redirect_uri.encode()).decode()
     }
-    auth_code = oauth_gt.AuthorisationCode(**kwargs)
+    auth_code = oauth_gt.AuthorisationCode(kwargs)
     assert auth_code.validate_request()
 
     # Get response
