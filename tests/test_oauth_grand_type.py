@@ -180,3 +180,9 @@ def test_response():
         limit(1).\
         scalar()
     assert payload['code_id'] == auth_code_id
+
+
+def test_asdict():
+    auth_code = oauth_gt.AuthorisationCode()
+    assert all([getattr(auth_code, key) == value for key, value in auth_code.as_dict().items()])
+

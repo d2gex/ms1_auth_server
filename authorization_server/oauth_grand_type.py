@@ -24,9 +24,9 @@ class AuthorisationCode:
 
     grand_type = 'code'
 
-    def __init__(self, kwargs):
+    def __init__(self, url_args=None):
         '''
-        :param kwargs: MultiDict like data structure
+        :param url_args: MultiDict like data structure
         '''
 
         self.client_id = None
@@ -39,8 +39,9 @@ class AuthorisationCode:
         self.scope = None
         self.errors = None
 
-        for key in kwargs:
-            setattr(self, key, kwargs[key] if not getattr(self, key, None) else None)
+        if url_args:
+            for key in url_args:
+                setattr(self, key, url_args[key] if not getattr(self, key, None) else None)
 
     def validate_request(self):
         '''Validate a client authorisation request by returning an error if something unexpected was received.
@@ -131,3 +132,6 @@ class AuthorisationCode:
             'code': jws_obj.serialize(compact=True),
             'state': self.state
         }
+
+    def as_dict(self):
+        return self.__dict__
