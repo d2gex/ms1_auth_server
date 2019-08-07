@@ -2,10 +2,8 @@ from authorization_server import models
 from authorization_server.app import db, bcrypt
 from authorization_server.frontend import forms
 from authorization_server.frontend.views import LOGIN_ERROR_MESSAGE
-from tests import utils as test_utils
 
 
-@test_utils.reset_database()
 def test_registration_form(frontend_app):
     '''Test the registration form as follows:
 
@@ -89,7 +87,6 @@ def test_registration_form(frontend_app):
     assert forms.DIFFERENT_PASSWORD_ERROR in response.get_data(as_text=True)
 
 
-@test_utils.reset_database()
 def test_login_logout(frontend_app):
     '''Test the login and logout screens as follows:
 

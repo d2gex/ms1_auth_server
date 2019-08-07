@@ -8,7 +8,6 @@ from authorization_server.app import db
 from tests import utils as test_utils
 
 
-@test_utils.reset_database()
 def test_valid_request():
     '''Ensure that a request is valid as follows:
 
@@ -122,7 +121,6 @@ def test_valid_request():
     assert auth_code.redirect_uri == db_data.redirect_uri
 
 
-@test_utils.reset_database()
 def test_response():
     '''Ensure that response is up to the standards set by oAuth2
     '''
@@ -185,4 +183,3 @@ def test_response():
 def test_asdict():
     auth_code = oauth_gt.AuthorisationCode()
     assert all([getattr(auth_code, key) == value for key, value in auth_code.as_dict().items()])
-

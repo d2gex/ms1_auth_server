@@ -8,6 +8,11 @@ from tests import utils as test_utils
 from unittest.mock import patch
 
 
+@pytest.fixture
+def reset_database():
+    pass
+
+
 def test_config_mixin():
     '''Check that ConfigMixin works as follows:
 

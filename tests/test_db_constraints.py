@@ -10,7 +10,6 @@ def test_db_connection():
     assert db.engine.execute("select 1").scalar() == 1
 
 
-@test_utils.reset_database()
 def test_user_table():
     user_1 = models.User(email='test@example.com', password='abcD1234')
     user_2 = models.User(email='test@example.com', password='abcD1234')
@@ -26,7 +25,6 @@ def test_user_table():
         raise AssertionError('user_2 did not throw Integrity error as expected')
 
 
-@test_utils.reset_database(tear='up')
 def test_client_table():
     ''' Test that application table respect the following constraints:
 
@@ -177,7 +175,6 @@ def test_client_table():
     assert db.session.query(func.count(models.Application.id)).scalar() == db_num_clients + 2
 
 
-@test_utils.reset_database(tear='up_down')
 def test_authorisation_code_table():
     '''Ensure authorisation_code constrains are met
     '''

@@ -47,7 +47,6 @@ def perform_logged_in(app_instance, user_data):
         assert 'user_id' in session
 
 
-@test_utils.reset_database()
 def test_add_user_client_context_to_db():
 
     client_data, user_data = add_user_client_context_to_db()
@@ -62,7 +61,6 @@ def test_add_user_client_context_to_db():
         assert user_data
 
 
-@test_utils.reset_database()
 def test_code_request_login_required(frontend_app):
     '''Ensure that views in auth are login-required
 
@@ -86,7 +84,6 @@ def test_code_request_login_required(frontend_app):
     assert 'Bad Request' in response.get_data(as_text=True)
 
 
-@test_utils.reset_database()
 def test_code_request_view_400_error(frontend_app):
     ''' Test that the authorisation request url:
 
@@ -132,7 +129,6 @@ def test_code_request_view_400_error(frontend_app):
     assert response.status_code == 302
 
 
-@test_utils.reset_database()
 def test_code_request_view_302_error(frontend_app):
     '''Test that the authorisation request url:
 
@@ -160,7 +156,6 @@ def test_code_request_view_302_error(frontend_app):
     assert all([keyword in response.headers.get('Location')] for keyword in ['state', 'unsupported_response_type'])
 
 
-@test_utils.reset_database()
 def test_code_request_view_200_successfully(frontend_app):
     '''Provided the write parameters in the authorisation request url, the resource owner is redirected to form for
     permission approval or revoke.
@@ -186,7 +181,6 @@ def test_code_request_view_200_successfully(frontend_app):
         assert 'auth_code' in session
 
 
-@test_utils.reset_database()
 def test_code_response_login_required(frontend_app):
     ''' If resource owner is not logged in => redirect to GrandType Login page
     '''
@@ -199,7 +193,6 @@ def test_code_response_login_required(frontend_app):
                for keyword in ['Forgot Password?', 'This application would like:'])
 
 
-@test_utils.reset_database()
 def test_code_response_view_302_wrong_source(frontend_app):
     '''Test 302 redirection cases for code_response as follows:
 
@@ -224,7 +217,6 @@ def test_code_response_view_302_wrong_source(frontend_app):
     assert all(keywords in response.headers['Location'] for keywords in ('auth', 'code_request'))
 
 
-@test_utils.reset_database()
 def test_code_response_view_302_cancel(frontend_app):
     '''Test 302 redirection back to the client when the resource owner explicitly denies the consent
     '''
@@ -258,7 +250,6 @@ def test_code_response_view_302_cancel(frontend_app):
     ))
 
 
-@test_utils.reset_database()
 def test_code_response_view_302_allow(frontend_app):
     '''Test 302 redirection back to the client when the resource owner explicitly gives consent
     '''

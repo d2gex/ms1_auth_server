@@ -7,5 +7,6 @@
 .flaskenv
 .env
 .coverage
+.sessions
 # To avoid accidents
 __pycache__

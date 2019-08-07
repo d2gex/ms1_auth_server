@@ -1,5 +1,12 @@
+import pytest
+
 from authorization_server import utils
 from unittest.mock import patch, MagicMock
+
+
+@pytest.fixture
+def reset_database():
+    pass
 
 
 def test_init_class():

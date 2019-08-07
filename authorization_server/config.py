@@ -57,9 +57,3 @@ class Config(ConfigMixin):
     JWK_PUBLIC = ConfigMixin.public_jwk
     AUTH_CODE_EXPIRATION_TIME = 60  # value in second from now
     AUTH_CODE_ENCODING = 'utf-8'  # Encoding needed for JWS Auth code
-
-
-class TestingConfig(Config):
-    # Needed for form's unit test validation
-    WTF_CSRF_ENABLED = False
-    SESSION_TESTING = True

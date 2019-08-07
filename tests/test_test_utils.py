@@ -1,8 +1,14 @@
+import pytest
+
 from sqlalchemy import Table
 from unittest.mock import patch
 from tests import utils as test_utils
 from authorization_server import models
 
+
+@pytest.fixture
+def reset_database():
+    pass
 
 def test_queries():
     '''Test queries generator generates the right delete queries depending on the type of object of a given list
