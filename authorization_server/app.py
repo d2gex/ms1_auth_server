@@ -3,11 +3,13 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
+from flask_beaker_session import session as beaker_session
 from authorization_server import config
 
 db = SQLAlchemy()
 migrate = Migrate()
 bcrypt = Bcrypt()
+session = beaker_session.Session()
 login_manager = LoginManager()
 login_manager.login_view = "frontend.login"
 login_manager.login_message = "Please log in to see restricted access web pages"
@@ -19,6 +21,7 @@ def create_app(config_class=config.Config):
     app.config.from_object(config_class)
 
     db.init_app(app)
+    session.init_app(app)
     # require to import models here so that migrate knows what to generate
     from authorization_server import models
     migrate.init_app(app, db)

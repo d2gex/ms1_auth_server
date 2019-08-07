@@ -1,5 +1,5 @@
 <div class="signup-form">
-    <form id="signin-form" method="POST" action="">
+    <form id="signin-form" method="POST" action="{{ url_for('auth.code_response') }}">
         {{ form.hidden_tag() }}
         <div class="form-group">
             {% include 'include/client_app_details.html' %}

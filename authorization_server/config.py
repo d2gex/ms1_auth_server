@@ -62,3 +62,4 @@ class Config(ConfigMixin):
 class TestingConfig(Config):
     # Needed for form's unit test validation
     WTF_CSRF_ENABLED = False
+    SESSION_TESTING = True

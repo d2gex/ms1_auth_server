@@ -3,6 +3,7 @@ import base64
 from sqlalchemy.orm import exc
 from authorization_server import models, oauth_grand_type as oauth_gt
 from authorization_server.app import db, bcrypt
+from unittest.mock import patch
 from tests import utils as test_utils
 
 
@@ -62,7 +63,7 @@ def test_add_user_client_context_to_db():
 
 
 @test_utils.reset_database()
-def test_code_login_required(frontend_app):
+def test_code_request_login_required(frontend_app):
     '''Ensure that views in auth are login-required
 
     1) When not logged in => User should be redirected to GrandType Login page
@@ -72,7 +73,7 @@ def test_code_login_required(frontend_app):
     client_data, user_data = add_user_client_context_to_db()
 
     # (1)
-    response = frontend_app.get('/auth/code')
+    response = frontend_app.get('/auth/code_request')
     assert response.status_code == 302
     assert all([keyword in response.get_data(as_text=True)]
                for keyword in ['Forgot Password?', 'This application would like:'])
@@ -80,13 +81,13 @@ def test_code_login_required(frontend_app):
     # (2)
     perform_logged_in(frontend_app, user_data)
 
-    response = frontend_app.get('/auth/code')
+    response = frontend_app.get('/auth/code_request')
     assert response.status_code == 400
     assert 'Bad Request' in response.get_data(as_text=True)
 
 
 @test_utils.reset_database()
-def test_code_view_400_error(frontend_app):
+def test_code_request_view_400_error(frontend_app):
     ''' Test that the authorisation request url:
 
     1) If not provided a client_id argument => 400 error
@@ -102,37 +103,37 @@ def test_code_view_400_error(frontend_app):
     perform_logged_in(frontend_app, user_data)
 
     # (1)
-    response = frontend_app.get('/auth/code')
+    response = frontend_app.get('/auth/code_request')
     assert response.status_code == 400
     assert all([keyword in response.get_data(as_text=True)] for keyword in ['Bad Request', 'an invalid identifier'])
 
     # (2)
-    response = frontend_app.get('/auth/code?client_id=doesnotexistindb')
+    response = frontend_app.get('/auth/code_request?client_id=doesnotexistindb')
     assert response.status_code == 400
     assert all([keyword in response.get_data(as_text=True)] for keyword in ['Bad Request', 'not registered with us'])
 
     # (3)
     client_id = client_data[0]['id']
-    response = frontend_app.get(f'/auth/code?client_id={client_id}&redirect_uri=nourlbaseencode')
+    response = frontend_app.get(f'/auth/code_request?client_id={client_id}&redirect_uri=nourlbaseencode')
     assert response.status_code == 400
     assert all([keyword in response.get_data(as_text=True)]
                for keyword in ['Bad Request', "'redirect_uri' argument is invalid"])
 
     # (4)
     redirect_uri = base64.urlsafe_b64encode('https://www.idonotexist.com'.encode()).decode()
-    response = frontend_app.get(f'/auth/code?client_id={client_id}&redirect_uri={redirect_uri}')
+    response = frontend_app.get(f'/auth/code_request?client_id={client_id}&redirect_uri={redirect_uri}')
     assert response.status_code == 400
     assert all([keyword in response.get_data(as_text=True)]
                for keyword in ['Bad Request', "'redirect_uri' is not registered with us"])
 
     # (5)
     redirect_uri = base64.urlsafe_b64encode(client_data[0]['redirect_uri'].encode()).decode()
-    response = frontend_app.get(f'/auth/code?client_id={client_id}&redirect_uri={redirect_uri}')
+    response = frontend_app.get(f'/auth/code_request?client_id={client_id}&redirect_uri={redirect_uri}')
     assert response.status_code == 302
 
 
 @test_utils.reset_database()
-def test_code_view_302_error(frontend_app):
+def test_code_request_view_302_error(frontend_app):
     '''Test that the authorisation request url:
 
     1) if response_type is not provided or unsupported => 302 redirection with errors occur
@@ -146,13 +147,13 @@ def test_code_view_302_error(frontend_app):
     # (1)
     client_id = client_data[0]['id']
     redirect_uri = base64.urlsafe_b64encode(client_data[0]['redirect_uri'].encode()).decode()
-    response = frontend_app.get(f'/auth/code?client_id={client_id}&redirect_uri={redirect_uri}')
+    response = frontend_app.get(f'/auth/code_request?client_id={client_id}&redirect_uri={redirect_uri}')
     assert response.status_code == 302
     assert 'unsupported_response_type' in response.headers.get('Location')
 
     # (2)
     response_type = oauth_gt.AuthorisationCode.grand_type
-    response = frontend_app.get(f'/auth/code?client_id={client_id}&'
+    response = frontend_app.get(f'/auth/code_request?client_id={client_id}&'
                                 f'redirect_uri={redirect_uri}&'
                                 f'response_type={response_type}')
     assert response.status_code == 302
@@ -160,7 +161,10 @@ def test_code_view_302_error(frontend_app):
 
 
 @test_utils.reset_database()
-def test_code_view_200_successfully(frontend_app):
+def test_code_request_view_200_successfully(frontend_app):
+    '''Provided the write parameters in the authorisation request url, the resource owner is redirected to form for
+    permission approval or revoke.
+    '''
 
     client_data, user_data = add_user_client_context_to_db()
 
@@ -171,9 +175,120 @@ def test_code_view_200_successfully(frontend_app):
     response_type = oauth_gt.AuthorisationCode.grand_type
     state = 'Something the client sent in first instance'
 
-    response = frontend_app.get(f'/auth/code?client_id={client_id}&'
+    response = frontend_app.get(f'/auth/code_request?client_id={client_id}&'
                                 f'redirect_uri={redirect_uri}&'
                                 f'response_type={response_type}&'
                                 f'state={state}')
     assert response.status_code == 200
-    assert all([keyword in response.get_data(as_text=True)] for keyword in ['This application would like:', 'Allow', 'Cancel'])
+    assert all([keyword in response.get_data(as_text=True)]
+               for keyword in ['This application would like:', 'Allow', 'Cancel'])
+    with frontend_app.session_transaction() as session:
+        assert 'auth_code' in session
+
+
+@test_utils.reset_database()
+def test_code_response_login_required(frontend_app):
+    ''' If resource owner is not logged in => redirect to GrandType Login page
+    '''
+    client_data, user_data = add_user_client_context_to_db()
+
+    # (1)
+    response = frontend_app.get('/auth/code_response')
+    assert response.status_code == 302
+    assert all([keyword in response.get_data(as_text=True)]
+               for keyword in ['Forgot Password?', 'This application would like:'])
+
+
+@test_utils.reset_database()
+def test_code_response_view_302_wrong_source(frontend_app):
+    '''Test 302 redirection cases for code_response as follows:
+
+    1) If not coming from code_request view => redirect to code_request
+    2) if does come from code_request view but the form was not submitted up there => redirect to code_request
+    '''
+
+    client_data, user_data = add_user_client_context_to_db()
+    perform_logged_in(frontend_app, user_data)
+
+    # (1)
+    response = frontend_app.get('/auth/code_response')
+    assert response.status_code == 302
+    assert all(keywords in response.headers['Location'] for keywords in ('auth', 'code_request'))
+
+    # (2)
+    with frontend_app.session_transaction() as session:
+        session['auth_code'] = 'something'
+
+    response = frontend_app.get('/auth/code_response')
+    assert response.status_code == 302
+    assert all(keywords in response.headers['Location'] for keywords in ('auth', 'code_request'))
+
+
+@test_utils.reset_database()
+def test_code_response_view_302_cancel(frontend_app):
+    '''Test 302 redirection back to the client when the resource owner explicitly denies the consent
+    '''
+
+    client_data, user_data = add_user_client_context_to_db()
+    perform_logged_in(frontend_app, user_data)
+
+    # Emulate that the auth_code request was successfully passed via session variable
+    redirect_uri = 'http://client_domain.com/callback'
+    state = 'checksum_issued_by_client'
+    with frontend_app.session_transaction() as session:
+        session['auth_code'] = {
+            'redirect_uri': redirect_uri,
+            'state': state
+        }
+
+    # Mock up that 'Cancel' button has been pressed
+    with patch('authorization_server.auth.views.AuthorisationForm') as form:
+        form.return_value.cancel.data = True
+        response = frontend_app.get('/auth/code_response')
+
+    assert response.status_code == 302
+    # Client should get a contextual denial response
+    assert all(keywords in response.headers['Location'] for keywords in (
+        'error',
+        'error_description',
+        'state',
+        redirect_uri,
+        oauth_gt.CLIENT_ACCESS_DENIED_ERROR,
+        state
+    ))
+
+
+@test_utils.reset_database()
+def test_code_response_view_302_allow(frontend_app):
+    '''Test 302 redirection back to the client when the resource owner explicitly gives consent
+    '''
+
+    client_data, user_data = add_user_client_context_to_db()
+    perform_logged_in(frontend_app, user_data)
+
+    # Emulate that the auth_code request was successfully passed via session variable
+    redirect_uri = 'http://client_domain.com/callback'
+    state = 'checksum_issued_by_client'
+
+    with frontend_app.session_transaction() as session:
+        session['auth_code'] = {
+            'redirect_uri': redirect_uri,
+            'state': state,
+            'client_id': client_data[0]['id']
+        }
+
+    assert not db.session.query(models.AuthorisationCode).all()
+    # Mock up that 'OK' button has been pressed
+    with patch('authorization_server.auth.views.AuthorisationForm') as form:
+        form.return_value.cancel.data = False
+        form.return_value.allow.data = True
+        response = frontend_app.get('/auth/code_response')
+
+    assert response.status_code == 302
+    assert db.session.query(models.AuthorisationCode).one()
+    assert all(keywords in response.headers['Location'] for keywords in (
+        'code',
+        'state',
+        redirect_uri,
+        state
+    ))
