@@ -16,7 +16,7 @@ def code_request():
     # Is the request valid both in format and semantics => show authorisation form
     if valid_request:
         form = AuthorisationForm()
-        session['auth_code'] = auth_code.as_dict()
+        session['auth_code_request'] = auth_code.as_dict()
         return render_template('auth/code.html', client_app=auth_code, form=form, errors=False)
 
     # ... Or perhaps there is an error that the user should know as specified by oAuth 2.0? => show error on page
@@ -40,7 +40,7 @@ def code_response():
     '''
 
     # Not coming from code_request? => redirect to code_request
-    if 'auth_code' not in session:
+    if 'auth_code_request' not in session:
         return redirect(url_for('auth.code_request'))
 
     # Coming from code_request but form was not submitted => redirect back to code_request
@@ -49,7 +49,7 @@ def code_response():
         return redirect(url_for('auth.code_request'))
 
     # Process response from Resource Owner
-    auth_code_request = session['auth_code']
+    auth_code_request = session['auth_code_request']
     url = auth_code_request['redirect_uri']
     if form.cancel.data:
         error_description = "The resource owner explicitly denied the required sought permissions"

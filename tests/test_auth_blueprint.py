@@ -178,7 +178,7 @@ def test_code_request_view_200_successfully(frontend_app):
     assert all([keyword in response.get_data(as_text=True)]
                for keyword in ['This application would like:', 'Allow', 'Cancel'])
     with frontend_app.session_transaction() as session:
-        assert 'auth_code' in session
+        assert 'auth_code_request' in session
 
 
 def test_code_response_login_required(frontend_app):
@@ -210,7 +210,7 @@ def test_code_response_view_302_wrong_source(frontend_app):
 
     # (2)
     with frontend_app.session_transaction() as session:
-        session['auth_code'] = 'something'
+        session['auth_code_request'] = 'something'
 
     response = frontend_app.get('/auth/code_response')
     assert response.status_code == 302
@@ -228,7 +228,7 @@ def test_code_response_view_302_cancel(frontend_app):
     redirect_uri = 'http://client_domain.com/callback'
     state = 'checksum_issued_by_client'
     with frontend_app.session_transaction() as session:
-        session['auth_code'] = {
+        session['auth_code_request'] = {
             'redirect_uri': redirect_uri,
             'state': state
         }
@@ -262,7 +262,7 @@ def test_code_response_view_302_allow(frontend_app):
     state = 'checksum_issued_by_client'
 
     with frontend_app.session_transaction() as session:
-        session['auth_code'] = {
+        session['auth_code_request'] = {
             'redirect_uri': redirect_uri,
             'state': state,
             'client_id': client_data[0]['id']
