@@ -3,12 +3,10 @@ import uuid
 
 from authorization_server import config, models
 from authorization_server.app import db, create_app
-from tests import utils as test_utils
 
 RESOURCE_URI = '/api/auth/registration/'
 
 
-@test_utils.reset_database()
 def test_post(frontend_app):
     '''Test than we posting to /registration:
 

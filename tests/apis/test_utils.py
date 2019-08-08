@@ -3,6 +3,11 @@ import pytest
 from authorization_server.apis import utils
 
 
+@pytest.fixture
+def reset_database():
+    pass
+
+
 def test_make_response():
     '''
     1) RESPONSE_<<CODE>> attribute is picked up

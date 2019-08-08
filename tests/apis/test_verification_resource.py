@@ -3,12 +3,10 @@ import secrets
 
 from authorization_server import models
 from authorization_server.app import db, bcrypt
-from tests import utils as test_utils
 
 RESOURCE_URI = '/api/auth/verification/'
 
 
-@test_utils.reset_database()
 def test_post(frontend_app):
     '''Test than we posting to /verification:
 
