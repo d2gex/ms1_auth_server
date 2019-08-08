@@ -152,7 +152,7 @@ def test_response():
     assert auth_code.validate_request()
 
     # Get response
-    signed_token = auth_code.response(db_data.id)
+    signed_token = auth_code.response()
     # --> Ensure returned structured is the one expected
     assert all([key in signed_token] for key in ['code', 'state'])
     assert signed_token['state'] == kwargs['state']

@@ -104,12 +104,12 @@ class AuthorisationCode:
 
         return True
 
-    def response(self, client_id):
+    def response(self):
         '''Craft a response to be sent back to the client as specified by oAuth
         '''
 
         # Create a unique id in the database to be associated to this token
-        auth_code = models.AuthorisationCode(application_id=client_id)
+        auth_code = models.AuthorisationCode(application_id=self.client_id)
         db.session.add(auth_code)
         db.session.commit()
 

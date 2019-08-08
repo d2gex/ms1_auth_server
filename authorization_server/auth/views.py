@@ -58,7 +58,7 @@ def code_response():
                f"state={auth_code_request['state']}"
     elif form.allow.data:
         auth_code = oauth_gt.AuthorisationCode(auth_code_request)
-        response = auth_code.response(auth_code_request['client_id'])
+        response = auth_code.response()
         url += f"?code={response['code']}&state={response['state']}"
 
     return redirect(url)
