@@ -1,10 +1,10 @@
 import json
 import uuid
 
-from authorization_server import config, models
-from authorization_server.app import db, create_app
+from authorization_server import models
+from authorization_server.app import db
 
-RESOURCE_URI = '/api/auth/registration/'
+RESOURCE_URI = '/api/client/registration'
 
 
 def test_post(frontend_app):

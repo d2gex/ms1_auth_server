@@ -4,7 +4,7 @@ import secrets
 from authorization_server import models
 from authorization_server.app import db, bcrypt
 
-RESOURCE_URI = '/api/auth/verification/'
+RESOURCE_URI = '/api/client/verification'
 
 
 def test_post(frontend_app):
