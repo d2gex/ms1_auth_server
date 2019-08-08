@@ -1,6 +1,7 @@
 import base64
 import binascii
 import json
+import abc
 
 from datetime import datetime, timedelta
 from jwcrypto import jws, jwk
@@ -18,11 +19,9 @@ RESOURCE_OWNER_ERROR = 1
 CLIENT_ERROR = 2
 
 
-class AuthorisationCode:
-    '''Implements the Authorisation Code Grand Type as per oAuth at https://www.oauth.com/oauth2-servers/authorization/
-    '''
+class AuthorisationBase:
 
-    grand_type = 'code'
+    grand_type = 'authorization_code'
 
     def __init__(self, url_args=None):
         '''
@@ -30,18 +29,37 @@ class AuthorisationCode:
         '''
 
         self.client_id = None
-        self.name = None
-        self.description = None
-        self.web_url = None
         self.redirect_uri = None
-        self.response_type = None
         self.state = None
         self.scope = None
         self.errors = None
 
         if url_args:
             for key in url_args:
-                setattr(self, key, url_args[key] if not getattr(self, key, None) else None)
+                setattr(self, key, url_args[key])
+
+    def as_dict(self):
+        return self.__dict__
+
+    @abc.abstractmethod
+    def validate_request(self):
+        pass
+
+    @abc.abstractmethod
+    def response(self):
+        pass
+
+
+class AuthorisationCode(AuthorisationBase):
+    '''Implements the Authorisation Code Grand Type as per oAuth at https://www.oauth.com/oauth2-servers/authorization/
+    '''
+
+    def __init__(self, url_args=None):
+        self.name = None
+        self.description = None
+        self.web_url = None
+        self.response_type = None
+        super().__init__(url_args)
 
     def validate_request(self):
         '''Validate a client authorisation request by returning an error if something unexpected was received.
@@ -132,6 +150,3 @@ class AuthorisationCode:
             'code': jws_obj.serialize(compact=True),
             'state': self.state
         }
-
-    def as_dict(self):
-        return self.__dict__

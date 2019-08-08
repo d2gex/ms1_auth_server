@@ -1,5 +1,5 @@
 from flask import Blueprint, request, render_template, redirect, session, url_for
-from authorization_server import utils, oauth_grand_type as oauth_gt
+from authorization_server import utils, oauth_code
 from authorization_server.auth.forms import AuthorisationForm
 
 auth = Blueprint('auth', __name__, static_folder='../static/auth')
@@ -10,7 +10,7 @@ auth = Blueprint('auth', __name__, static_folder='../static/auth')
 def code_request():
     '''Handle the authorisation request from a client application.
     '''
-    auth_code = oauth_gt.AuthorisationCode(request.args)
+    auth_code = oauth_code.AuthorisationCode(request.args)
     valid_request = auth_code.validate_request()
 
     # Is the request valid both in format and semantics => show authorisation form
@@ -53,11 +53,11 @@ def code_response():
     url = auth_code_request['redirect_uri']
     if form.cancel.data:
         error_description = "The resource owner explicitly denied the required sought permissions"
-        url += f"?error={oauth_gt.CLIENT_ACCESS_DENIED_ERROR}&" \
+        url += f"?error={oauth_code.CLIENT_ACCESS_DENIED_ERROR}&" \
                f"error_description={error_description}&" \
                f"state={auth_code_request['state']}"
     elif form.allow.data:
-        auth_code = oauth_gt.AuthorisationCode(auth_code_request)
+        auth_code = oauth_code.AuthorisationCode(auth_code_request)
         response = auth_code.response()
         url += f"?code={response['code']}&state={response['state']}"
 

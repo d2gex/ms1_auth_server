@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect,  url_for, flash
 from flask_login import login_user, logout_user, current_user, login_required
 from authorization_server.frontend.forms import RegistrationForm, SimpleLoginForm, GrandTypeLoginForm
-from authorization_server import models, oauth_grand_type as oauth_gt
+from authorization_server import models, oauth_code
 from authorization_server.app import db, bcrypt
 
 frontend = Blueprint('frontend', __name__, static_folder='../static/frontend')
@@ -27,7 +27,7 @@ def login():
     client_app = None
     is_grand_type = request.args.get('grand_type')
     if is_grand_type == 'code':
-        auth_code = oauth_gt.AuthorisationCode(**request.args)
+        auth_code = oauth_code.AuthorisationCode(**request.args)
         client_app = {'name': 'Application Name', 'web_url': 'https://www.bbc.co.uk'}
         form = GrandTypeLoginForm()
     else:

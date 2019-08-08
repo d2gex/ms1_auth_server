@@ -1,7 +1,7 @@
 import base64
 
 from sqlalchemy.orm import exc
-from authorization_server import models, oauth_grand_type as oauth_gt
+from authorization_server import models, oauth_code
 from authorization_server.app import db, bcrypt
 from unittest.mock import patch
 from tests import utils as test_utils
@@ -148,7 +148,7 @@ def test_code_request_view_302_error(frontend_app):
     assert 'unsupported_response_type' in response.headers.get('Location')
 
     # (2)
-    response_type = oauth_gt.AuthorisationCode.grand_type
+    response_type = oauth_code.AuthorisationCode.grand_type
     response = frontend_app.get(f'/auth/code_request?client_id={client_id}&'
                                 f'redirect_uri={redirect_uri}&'
                                 f'response_type={response_type}')
@@ -167,7 +167,7 @@ def test_code_request_view_200_successfully(frontend_app):
     perform_logged_in(frontend_app, user_data)
     client_id = client_data[0]['id']
     redirect_uri = base64.urlsafe_b64encode(client_data[0]['redirect_uri'].encode()).decode()
-    response_type = oauth_gt.AuthorisationCode.grand_type
+    response_type = oauth_code.AuthorisationCode.grand_type
     state = 'Something the client sent in first instance'
 
     response = frontend_app.get(f'/auth/code_request?client_id={client_id}&'
@@ -245,7 +245,7 @@ def test_code_response_view_302_cancel(frontend_app):
         'error_description',
         'state',
         redirect_uri,
-        oauth_gt.CLIENT_ACCESS_DENIED_ERROR,
+        oauth_code.CLIENT_ACCESS_DENIED_ERROR,
         state
     ))
 
