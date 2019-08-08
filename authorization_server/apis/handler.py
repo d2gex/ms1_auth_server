@@ -1,7 +1,7 @@
 from flask import Blueprint
 from flask_restplus import Api
 from authorization_server.apis import errors as api_errors
-from authorization_server.apis.namespaces import registration, verification
+from authorization_server.apis.namespaces import client
 
 
 api_v1 = Blueprint('apis', __name__)
@@ -24,6 +24,4 @@ def handle_error(error):
     return error.to_response()
 
 
-api.add_namespace(registration.api, '/auth/registration')
-api.add_namespace(verification.api, '/auth/verification')
-
+api.add_namespace(client.api, '/client')
