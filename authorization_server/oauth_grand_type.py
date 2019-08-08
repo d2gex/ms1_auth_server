@@ -82,7 +82,7 @@ class AuthorisationCode:
 
         if not self.response_type or self.response_type != self.grand_type:
             errors['addressee'] = CLIENT_ERROR
-            errors['code'] = 200
+            errors['code'] = 302
             errors['error'] = CLIENT_UNSUPPORTED_RESPONSE_TYPE_ERROR
             errors['error_description'] = f"'response_type' argument '{self.response_type}' is not supported"
             self.errors = errors
@@ -90,7 +90,7 @@ class AuthorisationCode:
 
         if self.state is None or not self.state.strip():
             errors['addressee'] = CLIENT_ERROR
-            errors['code'] = 200
+            errors['code'] = 302
             errors['error'] = CLIENT_INVALID_REQUEST_ERROR
             errors['error_description'] = f"'state' argument '{self.state}' is invalid. A non-empty checksum " \
                                           f"is necessary"

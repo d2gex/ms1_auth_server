@@ -24,7 +24,7 @@ def code_request():
         return render_template('auth/code.html', errors=auth_code.errors), 400
 
     # ...Otherwise there is an error that only concerns the client only => redirect the error
-    if auth_code.errors['code'] == 200:
+    if auth_code.errors['code'] == 302:
         errors = auth_code.errors
         url = auth_code.redirect_uri
         url += f"?error={errors['error']}&error_description={errors['error_description']}"
