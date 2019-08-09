@@ -3,7 +3,7 @@ from sqlalchemy import Table
 from unittest.mock import patch
 from tests import utils as test_utils
 from authorization_server import models
-from authorization_server.app import db
+from authorization_server.app import db, bcrypt
 
 
 def test_queries():
@@ -171,7 +171,8 @@ def test_add_user_client_context_to_db():
     assert not db.session.query(models.Application).all()
     assert not db.session.query(models.User).all()
     test_utils. add_user_client_context_to_db()
-    assert db.session.query(models.Application).one()
+    client = db.session.query(models.Application).one()
+    assert bcrypt.check_password_hash(client.client_secret, test_utils.COMMON_ENTITY_PASSWORD)
     assert db.session.query(models.User).one()
 
 

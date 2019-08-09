@@ -8,6 +8,7 @@ from authorization_server.app import db, bcrypt
 
 table_names = [models.User, models.AuthorisationCode, models.Application]
 TEST_PATH = join(config.ROOT_PATH, 'tests')
+COMMON_ENTITY_PASSWORD = 'abcD1234'
 
 
 def queries(tables):
@@ -52,7 +53,7 @@ def generate_pair_client_model_data(constraints):
             'redirect_uri': f"{domain}/callback",
             'name': 'App Name',
             'description': 'App Description...',
-            'client_secret': 'abcD1234'
+            'client_secret': COMMON_ENTITY_PASSWORD
         })
 
     if all(value for key, value in constraints.items()):
@@ -94,7 +95,7 @@ def generate_model_user_instance(random=False):
         'firstname': 'First Name',
         'lastname': 'Last Name',
         'email': "firstname.lastname@example.com",
-        'password': 'abcD1234'
+        'password': COMMON_ENTITY_PASSWORD
     }
 
 
