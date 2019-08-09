@@ -1,14 +1,10 @@
-import pytest
-
+from flask_login import current_user
 from sqlalchemy import Table
 from unittest.mock import patch
 from tests import utils as test_utils
 from authorization_server import models
+from authorization_server.app import db
 
-
-@pytest.fixture
-def reset_database():
-    pass
 
 def test_queries():
     '''Test queries generator generates the right delete queries depending on the type of object of a given list
@@ -168,3 +164,31 @@ def test_generate_model_user_instance():
     # (2.1) Ensure the expected keywords are produced
     assert all([keyword in test_utils.generate_model_user_instance().items()]
                for keyword in ['firstname', 'lastname', 'email', 'password'])
+
+
+def test_add_user_client_context_to_db():
+
+    assert not db.session.query(models.Application).all()
+    assert not db.session.query(models.User).all()
+    test_utils. add_user_client_context_to_db()
+    assert db.session.query(models.Application).one()
+    assert db.session.query(models.User).one()
+
+
+def test_perform_logged_in(frontend_app):
+
+    client_data, user_data = test_utils.add_user_client_context_to_db()
+
+    # (1)
+    response = frontend_app.get('/login')
+    assert response.status_code == 200
+    assert all([keyword in response.get_data(as_text=True)]
+               for keyword in ['Forgot Password?', 'This application would like:'])
+    with frontend_app.session_transaction() as b_session:
+        assert 'user_id' not in b_session
+
+    # (2)
+    test_utils.perform_logged_in(frontend_app, user_data)
+    frontend_app.get('/login')
+    with frontend_app.session_transaction() as b_session:
+        assert 'user_id' in b_session

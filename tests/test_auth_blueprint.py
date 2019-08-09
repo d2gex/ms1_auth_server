@@ -2,54 +2,14 @@ import base64
 
 from sqlalchemy.orm import exc
 from authorization_server import models, oauth_code
-from authorization_server.app import db, bcrypt
+from authorization_server.app import db
 from unittest.mock import patch
 from tests import utils as test_utils
 
 
-def add_user_client_context_to_db():
-    '''Add user and client data to the database to emulate a real case scenario
-    '''
-    constraints = {
-        'id': True,
-        'email': True,
-        'reg_token': True,
-        'web_url': True,
-        'redirect_uri': True,
-        'name': True,
-        'description': True
-    }
-    client_data = test_utils.generate_pair_client_model_data(constraints)
-    client = models.Application(**client_data[0])
-    client.client_secret = bcrypt.generate_password_hash(client_data[0]['client_secret']).decode()
-    client.is_allowed = True
-    user_data = test_utils.generate_model_user_instance()
-    user = models.User(**user_data)
-    user.password = bcrypt.generate_password_hash(user_data['password']).decode()
-    db.session.add(client)
-    db.session.add(user)
-    db.session.commit()
-
-    client_data[0]['id'] = client.id
-    user_data['id'] = user.id
-    return client_data, user_data
-
-
-def perform_logged_in(app_instance, user_data):
-    data = {
-        'email': user_data['email'],
-        'password': user_data['password']
-    }
-    response = app_instance.post('/login', data=data, follow_redirects=True)
-    assert response.status_code == 200
-    assert 'Account Details' in response.get_data(as_text=True)
-    with app_instance.session_transaction() as session:
-        assert 'user_id' in session
-
-
 def test_add_user_client_context_to_db():
 
-    client_data, user_data = add_user_client_context_to_db()
+    client_data, user_data = test_utils.add_user_client_context_to_db()
     # Following two statements
     try:
         db.session.query(models.User).one()
@@ -68,7 +28,7 @@ def test_code_request_login_required(frontend_app):
     2) When user is logged in => User will have access to the actual rendered view
     '''
 
-    client_data, user_data = add_user_client_context_to_db()
+    client_data, user_data = test_utils.add_user_client_context_to_db()
 
     # (1)
     response = frontend_app.get('/auth/code_request')
@@ -77,7 +37,7 @@ def test_code_request_login_required(frontend_app):
                for keyword in ['Forgot Password?', 'This application would like:'])
 
     # (2)
-    perform_logged_in(frontend_app, user_data)
+    test_utils.perform_logged_in(frontend_app, user_data)
 
     response = frontend_app.get('/auth/code_request')
     assert response.status_code == 400
@@ -94,10 +54,10 @@ def test_code_request_view_400_error(frontend_app):
     5) Otherwise it may be a 302 redirection
     '''
 
-    client_data, user_data = add_user_client_context_to_db()
+    client_data, user_data = test_utils.add_user_client_context_to_db()
 
     # log in the user
-    perform_logged_in(frontend_app, user_data)
+    test_utils.perform_logged_in(frontend_app, user_data)
 
     # (1)
     response = frontend_app.get('/auth/code_request')
@@ -135,10 +95,10 @@ def test_code_request_view_302_error(frontend_app):
     1) if response_type is not provided or unsupported => 302 redirection with errors occur
     2) if state is not provided -> 302 redirection with errors occur
     '''
-    client_data, user_data = add_user_client_context_to_db()
+    client_data, user_data = test_utils.add_user_client_context_to_db()
 
     # log in the user
-    perform_logged_in(frontend_app, user_data)
+    test_utils.perform_logged_in(frontend_app, user_data)
 
     # (1)
     client_id = client_data[0]['id']
@@ -161,10 +121,10 @@ def test_code_request_view_200_successfully(frontend_app):
     permission approval or revoke.
     '''
 
-    client_data, user_data = add_user_client_context_to_db()
+    client_data, user_data = test_utils.add_user_client_context_to_db()
 
     # log in the user
-    perform_logged_in(frontend_app, user_data)
+    test_utils.perform_logged_in(frontend_app, user_data)
     client_id = client_data[0]['id']
     redirect_uri = base64.urlsafe_b64encode(client_data[0]['redirect_uri'].encode()).decode()
     response_type = oauth_code.AuthorisationCode.grand_type
@@ -184,7 +144,7 @@ def test_code_request_view_200_successfully(frontend_app):
 def test_code_response_login_required(frontend_app):
     ''' If resource owner is not logged in => redirect to GrandType Login page
     '''
-    client_data, user_data = add_user_client_context_to_db()
+    client_data, user_data = test_utils.add_user_client_context_to_db()
 
     # (1)
     response = frontend_app.get('/auth/code_response')
@@ -200,8 +160,8 @@ def test_code_response_view_302_wrong_source(frontend_app):
     2) if does come from code_request view but the form was not submitted up there => redirect to code_request
     '''
 
-    client_data, user_data = add_user_client_context_to_db()
-    perform_logged_in(frontend_app, user_data)
+    client_data, user_data = test_utils.add_user_client_context_to_db()
+    test_utils.perform_logged_in(frontend_app, user_data)
 
     # (1)
     response = frontend_app.get('/auth/code_response')
@@ -221,8 +181,8 @@ def test_code_response_view_302_cancel(frontend_app):
     '''Test 302 redirection back to the client when the resource owner explicitly denies the consent
     '''
 
-    client_data, user_data = add_user_client_context_to_db()
-    perform_logged_in(frontend_app, user_data)
+    client_data, user_data = test_utils.add_user_client_context_to_db()
+    test_utils.perform_logged_in(frontend_app, user_data)
 
     # Emulate that the auth_code request was successfully passed via session variable
     redirect_uri = 'http://client_domain.com/callback'
@@ -254,8 +214,8 @@ def test_code_response_view_302_allow(frontend_app):
     '''Test 302 redirection back to the client when the resource owner explicitly gives consent
     '''
 
-    client_data, user_data = add_user_client_context_to_db()
-    perform_logged_in(frontend_app, user_data)
+    client_data, user_data = test_utils.add_user_client_context_to_db()
+    test_utils.perform_logged_in(frontend_app, user_data)
 
     # Emulate that the auth_code request was successfully passed via session variable
     redirect_uri = 'http://client_domain.com/callback'
