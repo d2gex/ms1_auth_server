@@ -4,7 +4,7 @@ import json
 import abc
 
 from datetime import datetime, timedelta
-from jwcrypto import jws, jwk
+from jwcrypto import jws, jwk, jwt
 from sqlalchemy.orm import exc
 from authorization_server import config, models
 from authorization_server.app import db, bcrypt
@@ -119,7 +119,7 @@ class AuthorisationCode(AuthorisationBase):
         return True
 
     def response(self):
-        '''Craft a response to be sent back to the client as specified by oAuth
+        '''Given a valid request, craft an 'authorization code' to be sent back to the client as specified by oAuth
         '''
 
         # Create a unique id in the database to be associated to this token
@@ -239,4 +239,11 @@ class AuthorisationToken(AuthorisationBase):
         return True
 
     def response(self):
-        pass
+        '''Given a valid request, craft an 'authorization token' to be sent back to the client as specified by oAuth
+        '''
+
+        jwt_obj = jwt.JWT(header={"alg": config.Config.alg},
+                          claims={'expires_in': config.Config.AUTH_TOKEN_EXPIRATION_TIME})
+        jwt_obj.make_signed_token(jwk.JWK.from_json(config.Config.JWK_PRIVATE))
+        signed_jwt_token = jwt_obj.serialize()
+        return signed_jwt_token

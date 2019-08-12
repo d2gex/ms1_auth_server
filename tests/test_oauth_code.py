@@ -4,9 +4,9 @@ import base64
 import json
 
 from datetime import datetime, timedelta
-from jwcrypto import jws, jwk
+from jwcrypto import jws, jwk, jwt
 from authorization_server import config, models, oauth_code
-from authorization_server.app import db, bcrypt
+from authorization_server.app import db
 from unittest.mock import patch
 from tests import utils as test_utils
 
@@ -349,3 +349,16 @@ class TestAuthorisationToken:
                     payload['redirect_uri'] = 'something that does not exist in the db'
                     assert not auth_token.validate_request()
                     assert "'redirect_uri'" in auth_token.errors['error_description']
+
+    def test_response(self):
+        '''Test the issuing of a Authorisation Token. A Token that encrypted by us should also be able to be
+        decrypted by the public key.
+        '''
+
+        auth_token = oauth_code.AuthorisationToken({})
+        signed_jwt_token = auth_token.response()
+        assert len(signed_jwt_token.split('.')) == 3
+
+        raw_token = jwt.JWT(key=jwk.JWK.from_json(config.Config.JWK_PUBLIC), jwt=signed_jwt_token)
+        payload = {'expires_in': config.Config.AUTH_TOKEN_EXPIRATION_TIME}
+        assert json.loads(raw_token.claims) == payload

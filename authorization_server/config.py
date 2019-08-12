@@ -57,3 +57,4 @@ class Config(ConfigMixin):
     JWK_PUBLIC = ConfigMixin.public_jwk
     AUTH_CODE_EXPIRATION_TIME = 60  # value in seconds from now
     AUTH_CODE_ENCODING = 'utf-8'  # Encoding needed for JWS Auth code
+    AUTH_TOKEN_EXPIRATION_TIME = 1800  # value in seconds from now
