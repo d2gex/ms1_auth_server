@@ -36,10 +36,10 @@ class TestAuthorisationCode:
         5) Otherwise return True
         '''
 
-        kwargs = {}
+        url_args = {}
 
         # (1.1)
-        auth_code = oauth_code.AuthorisationCode(kwargs)
+        auth_code = oauth_code.AuthorisationCode(url_args=url_args)
         assert not auth_code.validate_request()
         errors = auth_code.errors
         assert errors['addressee'] == oauth_code.RESOURCE_OWNER_ERROR
@@ -47,8 +47,8 @@ class TestAuthorisationCode:
         assert 'invalid identifier' in errors['error_description']
 
         # (1.2)
-        kwargs['client_id'] = ''
-        auth_code = oauth_code.AuthorisationCode(kwargs)
+        url_args['client_id'] = ''
+        auth_code = oauth_code.AuthorisationCode(url_args=url_args)
         assert not auth_code.validate_request()
         errors = auth_code.errors
         assert errors['addressee'] == oauth_code.RESOURCE_OWNER_ERROR
@@ -56,8 +56,8 @@ class TestAuthorisationCode:
         assert 'invalid identifier' in errors['error_description']
 
         # (1.3)
-        kwargs['client_id'] = 'something'
-        auth_code = oauth_code.AuthorisationCode(kwargs)
+        url_args['client_id'] = 'something'
+        auth_code = oauth_code.AuthorisationCode(url_args=url_args)
         assert not auth_code.validate_request()
         errors = auth_code.errors
         assert errors['addressee'] == oauth_code.RESOURCE_OWNER_ERROR
@@ -82,9 +82,9 @@ class TestAuthorisationCode:
         db_data = db.session.query(models.Application).one()
 
         # -->(2.1)
-        kwargs['client_id'] = db_data.id
-        kwargs['redirect_uri'] = 'this is not a base64url encoded'
-        auth_code = oauth_code.AuthorisationCode(kwargs)
+        url_args['client_id'] = db_data.id
+        url_args['redirect_uri'] = 'this is not a base64url encoded'
+        auth_code = oauth_code.AuthorisationCode(url_args=url_args)
         assert not auth_code.validate_request()
         errors = auth_code.errors
         assert errors['addressee'] == oauth_code.RESOURCE_OWNER_ERROR
@@ -92,8 +92,8 @@ class TestAuthorisationCode:
         assert all([words in errors['error_description']] for words in ('redirect_uri', 'does not match the one'))
 
         # --> (2.2)
-        kwargs['redirect_uri'] = base64.urlsafe_b64encode(b'https://www.donotexist.com').decode()
-        auth_code = oauth_code.AuthorisationCode(kwargs)
+        url_args['redirect_uri'] = base64.urlsafe_b64encode(b'https://www.donotexist.com').decode()
+        auth_code = oauth_code.AuthorisationCode(url_args=url_args)
         assert not auth_code.validate_request()
         errors = auth_code.errors
         assert errors['addressee'] == oauth_code.RESOURCE_OWNER_ERROR
@@ -101,9 +101,9 @@ class TestAuthorisationCode:
         assert all([words in errors['error_description']] for words in ('redirect_uri', 'is not registered with us'))
 
         # (3)
-        kwargs['redirect_uri'] = base64.urlsafe_b64encode(db_data.redirect_uri.encode()).decode()
-        kwargs['response_type'] = 'unexpected value'
-        auth_code = oauth_code.AuthorisationCode(kwargs)
+        url_args['redirect_uri'] = base64.urlsafe_b64encode(db_data.redirect_uri.encode()).decode()
+        url_args['response_type'] = 'unexpected value'
+        auth_code = oauth_code.AuthorisationCode(url_args=url_args)
         assert not auth_code.validate_request()
         errors = auth_code.errors
         assert errors['addressee'] == oauth_code.CLIENT_ERROR
@@ -111,8 +111,8 @@ class TestAuthorisationCode:
         assert 'response_type' in errors['error_description']
 
         # (4.1)
-        kwargs['response_type'] = oauth_code.AuthorisationCode.grand_type
-        auth_code = oauth_code.AuthorisationCode(kwargs)
+        url_args['response_type'] = oauth_code.AuthorisationCode.grand_type
+        auth_code = oauth_code.AuthorisationCode(url_args=url_args)
         assert not auth_code.validate_request()
         errors = auth_code.errors
         assert errors['addressee'] == oauth_code.CLIENT_ERROR
@@ -120,8 +120,8 @@ class TestAuthorisationCode:
         assert 'state' in errors['error_description']
 
         # (4.2)
-        kwargs['state'] = "    "
-        auth_code = oauth_code.AuthorisationCode(kwargs)
+        url_args['state'] = "    "
+        auth_code = oauth_code.AuthorisationCode(url_args=url_args)
         assert not auth_code.validate_request()
         errors = auth_code.errors
         assert errors['addressee'] == oauth_code.CLIENT_ERROR
@@ -129,8 +129,8 @@ class TestAuthorisationCode:
         assert 'state' in errors['error_description']
 
         # (5)
-        kwargs['state'] = 'something'
-        auth_code = oauth_code.AuthorisationCode(kwargs)
+        url_args['state'] = 'something'
+        auth_code = oauth_code.AuthorisationCode(url_args=url_args)
         assert auth_code.validate_request()
         assert auth_code.client_id == db_data.id
         assert auth_code.name == db_data.name
@@ -159,20 +159,20 @@ class TestAuthorisationCode:
         db_data = db.session.query(models.Application).one()
 
         # --> Create request context
-        kwargs = {
+        url_args = {
             'client_id': db_data.id,
             'response_type': oauth_code.AuthorisationCode.grand_type,
             'state': str(uuid.uuid4()).replace('-', ''),
             'redirect_uri': base64.urlsafe_b64encode(db_data.redirect_uri.encode()).decode()
         }
-        auth_code = oauth_code.AuthorisationCode(kwargs)
+        auth_code = oauth_code.AuthorisationCode(url_args=url_args)
         assert auth_code.validate_request()
 
         # Get response
         signed_token = auth_code.response()
         # --> Ensure returned structured is the one expected
         assert all([key in signed_token] for key in ['code', 'state'])
-        assert signed_token['state'] == kwargs['state']
+        assert signed_token['state'] == url_args['state']
 
         # Verify signature
         private_jwk = jwk.JWK.from_json(config.Config.JWK_PRIVATE)
@@ -185,8 +185,8 @@ class TestAuthorisationCode:
 
         # Check payload is the one expected
         payload = json.loads(jws_obj.payload.decode(config.Config.AUTH_CODE_ENCODING))
-        assert payload['client_id'] == kwargs['client_id']
-        assert payload['redirect_uri'] == kwargs['redirect_uri']
+        assert payload['client_id'] == url_args['client_id']
+        assert payload['redirect_uri'] == url_args['redirect_uri']
         assert base64.urlsafe_b64decode(payload['redirect_uri'].
                                         encode(config.Config.AUTH_CODE_ENCODING)).decode() == db_data.redirect_uri
         auth_code_id = db.session.\
@@ -221,10 +221,10 @@ class TestAuthorisationToken:
         '''Ensure that the a code url parameter is passed and is valid
         '''
 
-        kwargs = {'grand_type': 'authorization_code', 'code': 'Not a valid token'}
+        url_args = {'grand_type': 'authorization_code', 'code': 'Not a valid token'}
 
         # ---> Invalid representation of JWS Format
-        auth_token = oauth_code.AuthorisationToken(kwargs)
+        auth_token = oauth_code.AuthorisationToken(url_args=url_args)
         assert not auth_token.validate_request()
         assert 'non-valid representation' in auth_token.errors['error_description']
 
@@ -242,8 +242,8 @@ class TestAuthorisationToken:
         '''Ensure all fields in the payload are the ones expected and are valid
         '''
 
-        kwargs = {'grand_type': 'authorization_code', 'code': 'To be ignored due to mockup'}
-        auth_token = oauth_code.AuthorisationToken(kwargs)
+        url_args = {'grand_type': 'authorization_code', 'code': 'To be ignored due to mockup'}
+        auth_token = oauth_code.AuthorisationToken(url_args=url_args)
 
         with patch.object(oauth_code, 'jwk'):
             with patch.object(oauth_code, 'jws'):
@@ -298,8 +298,8 @@ class TestAuthorisationToken:
         db.session.commit()
         assert db_auth_code.id
 
-        kwargs = {'grand_type': 'authorization_code', 'code': 'To be ignored due to mockup'}
-        auth_token = oauth_code.AuthorisationToken(kwargs)
+        url_args = {'grand_type': 'authorization_code', 'code': 'To be ignored due to mockup'}
+        auth_token = oauth_code.AuthorisationToken(url_args=url_args)
 
         with patch.object(oauth_code, 'jwk'):
             with patch.object(oauth_code, 'jws'):
@@ -355,7 +355,7 @@ class TestAuthorisationToken:
         decrypted by the public key.
         '''
 
-        auth_token = oauth_code.AuthorisationToken({})
+        auth_token = oauth_code.AuthorisationToken()
         signed_jwt_token = auth_token.response()
         assert len(signed_jwt_token.split('.')) == 3
 

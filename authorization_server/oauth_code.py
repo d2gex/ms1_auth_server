@@ -54,12 +54,12 @@ class AuthorisationCode(AuthorisationBase):
     '''Implements the Authorisation Code Grand Type as per oAuth at https://www.oauth.com/oauth2-servers/authorization/
     '''
 
-    def __init__(self, url_args=None):
+    def __init__(self, **kwargs):
         self.name = None
         self.description = None
         self.web_url = None
         self.response_type = None
-        super().__init__(url_args)
+        super().__init__(**kwargs)
 
     def validate_request(self):
         '''Validate a client authorisation request by returning an error if something unexpected was received.
@@ -150,13 +150,13 @@ class AuthorisationCode(AuthorisationBase):
 
 class AuthorisationToken(AuthorisationBase):
 
-    def __init__(self, url_args):
+    def __init__(self, **kwargs):
         self.code = None
         self.client_secret = None
         self.grand_type = None
         self.expiration_date = None
         self.code_id = None
-        super().__init__(url_args)
+        super().__init__(**kwargs)
 
     def validate_request(self):
         '''Validate a client authorisation request by returning an error if something unexpected was received.

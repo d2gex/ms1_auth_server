@@ -10,7 +10,7 @@ auth = Blueprint('auth', __name__, static_folder='../static/auth')
 def code_request():
     '''Handle the authorisation request from a client application.
     '''
-    auth_code = oauth_code.AuthorisationCode(request.args)
+    auth_code = oauth_code.AuthorisationCode(url_args=request.args)
     valid_request = auth_code.validate_request()
 
     # Is the request valid both in format and semantics => show authorisation form
@@ -57,7 +57,7 @@ def code_response():
                f"error_description={error_description}&" \
                f"state={auth_code_request['state']}"
     elif form.allow.data:
-        auth_code = oauth_code.AuthorisationCode(auth_code_request)
+        auth_code = oauth_code.AuthorisationCode(url_args=auth_code_request)
         response = auth_code.response()
         url += f"?code={response['code']}&state={response['state']}"
 
