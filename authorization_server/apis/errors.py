@@ -30,6 +30,24 @@ class BadRequest400Error(ApiError):
         self.code = 400
 
 
+class NotAuthorization401(ApiError):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.code = 401
+
+
+class Forbidden403Error(ApiError):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.code = 403
+
+
+class NotFound404Error(ApiError):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.code = 404
+
+
 class Conflict409Error(ApiError):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

@@ -3,7 +3,7 @@ import json
 from sqlalchemy.orm import exc
 from flask import request
 from flask_restplus import Resource, fields
-from authorization_server import models
+from authorization_server import models, oauth_code
 from authorization_server.app import db, bcrypt
 from authorization_server.apis.namespace import NameSpace
 from authorization_server.apis import utils as api_utils, errors as api_errors
@@ -26,6 +26,14 @@ registration_dto = api.model('Registration', {
 verification_dto = api.model('Verification', {
     'id': fields.String(max_length=40, required=True, description='Unique client_id representing the client'),
     'reg_token': fields.String(max_length=40, required=True, description='One-off token to verify the registration')
+})
+
+authorization_code_dto = api.model('JwtToken', {
+    'grand_type': fields.String(max_length=40,
+                                required=True,
+                                description="The type of the authorisation. Only 'authorization_code' is supported"),
+    'code': fields.String(required=True, description='JWS-type token for requesting a JWT Access Token'),
+    'client_secret': fields.String(required=True, max_length=20, description="Password provided at registration time")
 })
 
 
@@ -119,3 +127,44 @@ class Verification(Resource):
             response['id'] = db_data.id
             response['client_secret'] = client_secret
             return response, 201
+
+
+@api.route('/')
+class Token(Resource):
+
+    @api.expect(authorization_code_dto)
+    @api.response_error(api_errors.BadRequest400Error(message=api_utils.RESPONSE_400))
+    @api.response_error(api_errors.NotAuthorization401(message=api_utils.RESPONSE_401))
+    @api.response_error(api_errors.Forbidden403Error(message=api_utils.RESPONSE_403))
+    @api.response(201, json.dumps(api_utils.RESPONSE_201_TOKEN_POST), body=False)
+    def post(self):
+
+        if not isinstance(api.payload, dict):
+            raise api_errors.BadRequest400Error(
+                message='Incorrect type of object received. Instead a json object is expected',
+                envelop=api_utils.RESPONSE_400)
+
+        # Do we have all expected fields?
+        expected_fields = authorization_code_dto.keys()
+        for key in expected_fields:
+            if key not in api.payload:
+                raise api_errors.BadRequest400Error(message=f"Required key '{key}' not found",
+                                                    envelop=api_utils.RESPONSE_400)
+        auth_code = oauth_code.AuthorisationToken(url_args={
+            'grand_type': api.payload['grand_type'],
+            'code': api.payload['code'],
+            'client_secret': api.payload['client_secret']
+        })
+
+        # Validate request
+        if not auth_code.validate_request():
+            if auth_code.errors['code'] == 400:
+                raise api_errors.BadRequest400Error(message=auth_code.errors['error_description'],
+                                                    envelop=api_utils.RESPONSE_400)
+            if auth_code.errors['code'] == 401:
+                raise api_errors.NotAuthorization401(message=auth_code.errors['error_description'],
+                                                     envelop=api_utils.RESPONSE_401)
+            raise api_errors.Forbidden403Error(message=auth_code.errors['error_description'],
+                                               envelop=api_utils.RESPONSE_403)
+        return {'token': auth_code.response(), 'token_type': 'bearer'}, 201, \
+               {'Cache-Control': 'no-store', 'Pragma': 'no-cache'}

@@ -18,6 +18,9 @@ def default_error_handler(error):
 
 
 @api.errorhandler(api_errors.BadRequest400Error)
+@api.errorhandler(api_errors.NotAuthorization401)
+@api.errorhandler(api_errors.Forbidden403Error)
+@api.errorhandler(api_errors.NotFound404Error)
 @api.errorhandler(api_errors.Conflict409Error)
 @api.errorhandler(api_errors.Server500Error)
 def handle_error(error):
