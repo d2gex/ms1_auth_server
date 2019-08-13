@@ -159,13 +159,17 @@ class AuthorisationToken(AuthorisationBase):
         super().__init__(**kwargs)
 
     def validate_request(self):
-        '''Validate a client authorisation request by returning an error if something unexpected was received.
+        '''Validate a client authorisation request by returning an error if something unexpected was received. Errors
+        are classified as 400, 401 and 403.
         '''
 
         self.errors = {
+            'code': 400,
             'error': None,
             'error_description': None
         }
+
+        # (1) ---> 400 Bad Request Errors
         if self.grand_type != super().grand_type:
             self.errors['error_description'] = "The client application did not provide the expected " \
                                                "'authorization_code' grand_type"
@@ -173,6 +177,10 @@ class AuthorisationToken(AuthorisationBase):
 
         if not self.code:
             self.errors['error_description'] = "The client application did not provide a authorisation code"
+            return False
+
+        if not self.client_secret:
+            self.errors['error_description'] = "The client application did not provide a client_secret"
             return False
 
         # Ensure code is a valid JWS
@@ -184,6 +192,8 @@ class AuthorisationToken(AuthorisationBase):
             self.errors['error_description'] = "The client provided a non-valid representation of JWS"
             return False
 
+        # (2) ---> 403 Forbidden Permission Errors
+        self.errors['code'] = 403
         # Ensure code has been signed by us
         try:
             jws_obj.verify(private_jwk)
@@ -227,12 +237,15 @@ class AuthorisationToken(AuthorisationBase):
             self.errors['error_description'] = "The client provided an expired 'authorization_code'"
             return False
 
+        # (3) ---> 401 Authentication Error
         # Ensure client_id and client_secret coincide
-        if not self.client_secret or not bcrypt.check_password_hash(db_app.client_secret, self.client_secret):
+        if not bcrypt.check_password_hash(db_app.client_secret, self.client_secret):
+            self.errors['code'] = 401
             self.errors['error_description'] = "The client provided a 'client_id' and 'client_secret' that don't match"
             return False
 
         if self.redirect_uri != db_app.redirect_uri:
+            self.errors['code'] = 403
             self.errors['error_description'] = "The client provided a 'redirect_uri' that does not match our records"
             return False
 

@@ -207,26 +207,41 @@ class TestAuthorisationToken:
         assert not auth_token.validate_request()
         assert all(keywords in auth_token.errors['error_description']
                    for keywords in ("'authorization_code'", 'grand_type'))
+        assert auth_token.errors['code'] == 400
 
         auth_token.grand_type = 'something unexpected'
         assert not auth_token.validate_request()
         assert all(keywords in auth_token.errors['error_description']
                    for keywords in ("'authorization_code'", 'grand_type'))
+        assert auth_token.errors['code'] == 400
 
         auth_token.grand_type = 'authorization_code'
         assert not auth_token.validate_request()
         assert 'authorisation code' in auth_token.errors['error_description']
+        assert auth_token.errors['code'] == 400
+
+    def test_client_secret_provided(self):
+        '''Ensure client_secret url parameter has been provided
+        '''
+        url_args = {'grand_type': 'authorization_code', 'code': 'Not a valid token'}
+        auth_token = oauth_code.AuthorisationToken(url_args=url_args)
+        assert not auth_token.validate_request()
+        assert 'did not provide a client_secret' in auth_token.errors['error_description']
+        assert auth_token.errors['code'] == 400
 
     def test_valid_request_correct_url_code(self, other_private_jwk):
         '''Ensure that the a code url parameter is passed and is valid
         '''
 
-        url_args = {'grand_type': 'authorization_code', 'code': 'Not a valid token'}
+        url_args = {'grand_type': 'authorization_code',
+                    'client_secret': 'something',
+                    'code': 'Not a valid token'}
 
         # ---> Invalid representation of JWS Format
         auth_token = oauth_code.AuthorisationToken(url_args=url_args)
         assert not auth_token.validate_request()
         assert 'non-valid representation' in auth_token.errors['error_description']
+        assert auth_token.errors['code'] == 400
 
         # ---> JWS has not been signed by us
         # Create a JWS with given payload and a different private key
@@ -237,12 +252,15 @@ class TestAuthorisationToken:
 
         assert not auth_token.validate_request()
         assert 'token that has not been signed in' in auth_token.errors['error_description']
+        assert auth_token.errors['code'] == 403
 
     def test_valid_request_correct_url_code_payload_fields(self):
         '''Ensure all fields in the payload are the ones expected and are valid
         '''
 
-        url_args = {'grand_type': 'authorization_code', 'code': 'To be ignored due to mockup'}
+        url_args = {'grand_type': 'authorization_code',
+                    'client_secret': 'something',
+                    'code': 'Not a valid token'}
         auth_token = oauth_code.AuthorisationToken(url_args=url_args)
 
         with patch.object(oauth_code, 'jwk'):
@@ -252,6 +270,7 @@ class TestAuthorisationToken:
                     mock_loads.return_value = {}
                     assert not auth_token.validate_request()
                     assert 'did not provide all the required fields' in auth_token.errors['error_description']
+                    assert auth_token.errors['code'] == 403
 
                     # only 'client_id' provided
                     mock_loads.return_value = {
@@ -259,6 +278,7 @@ class TestAuthorisationToken:
                     }
                     assert not auth_token.validate_request()
                     assert 'did not provide all the required fields' in auth_token.errors['error_description']
+                    assert auth_token.errors['code'] == 403
 
                     # only 'client_id'  and 'redirect_uri' provided
                     mock_loads.return_value = {
@@ -267,6 +287,7 @@ class TestAuthorisationToken:
                     }
                     assert not auth_token.validate_request()
                     assert 'did not provide all the required fields' in auth_token.errors['error_description']
+                    assert auth_token.errors['code'] == 403
 
                     # only 'client_id', 'redirect_uri' and 'expiration_date' provided
                     mock_loads.return_value = {
@@ -276,6 +297,7 @@ class TestAuthorisationToken:
                     }
                     assert not auth_token.validate_request()
                     assert 'did not provide all the required fields' in auth_token.errors['error_description']
+                    assert auth_token.errors['code'] == 403
 
                     mock_loads.return_value = {
                         'client_id': '',
@@ -283,8 +305,10 @@ class TestAuthorisationToken:
                         'expiration_date': '',
                         'code_id': ''
                     }
+                    # client_id and/or code_id are not recognised
                     assert not auth_token.validate_request()
                     assert 'Either the client does not exist' in auth_token.errors['error_description']
+                    assert auth_token.errors['code'] == 403
 
     def test_valid_request_correct_url_code_payload_fields_and_values(self):
         '''Ensure that fields provided in the payload are those expected and the authorisation code provided was not
@@ -298,7 +322,9 @@ class TestAuthorisationToken:
         db.session.commit()
         assert db_auth_code.id
 
-        url_args = {'grand_type': 'authorization_code', 'code': 'To be ignored due to mockup'}
+        url_args = {'grand_type': 'authorization_code',
+                    'client_secret': 'something',
+                    'code': 'Not a valid token'}
         auth_token = oauth_code.AuthorisationToken(url_args=url_args)
 
         with patch.object(oauth_code, 'jwk'):
@@ -315,16 +341,19 @@ class TestAuthorisationToken:
                     mock_loads.return_value = payload
                     assert not auth_token.validate_request()
                     assert 'Either the client does not exist' in auth_token.errors['error_description']
+                    assert auth_token.errors['code'] == 403
 
                     payload['client_id'] = db_auth_code.application_id
                     payload['code_id'] = 5555555555
                     assert not auth_token.validate_request()
                     assert 'Either the client does not exist' in auth_token.errors['error_description']
+                    assert auth_token.errors['code'] == 403
 
                     # If code has already being used
                     payload['code_id'] = db_auth_code.id
                     assert not auth_token.validate_request()
                     assert "'authorization_code' already" in auth_token.errors['error_description']
+                    assert auth_token.errors['code'] == 403
 
                     # If code has expired
                     db_auth_code.used = False
@@ -334,6 +363,7 @@ class TestAuthorisationToken:
                     payload['expiration_date'] = after.strftime("%d-%m-%Y %H:%M:%S")
                     assert not auth_token.validate_request()
                     assert "expired" in auth_token.errors['error_description']
+                    assert auth_token.errors['code'] == 403
 
                     # if client_id and client_secret do not coincide
                     before = now - timedelta(seconds=10)
@@ -343,12 +373,14 @@ class TestAuthorisationToken:
                     auth_token.client_secret = 'no within the database'
                     assert not auth_token.validate_request()
                     assert "that don't match" in auth_token.errors['error_description']
+                    assert auth_token.errors['code'] == 401
 
                     # if redirect_uri does not match our records
                     auth_token.client_secret = client_data[0]['client_secret']
                     payload['redirect_uri'] = 'something that does not exist in the db'
                     assert not auth_token.validate_request()
                     assert "'redirect_uri'" in auth_token.errors['error_description']
+                    assert auth_token.errors['code'] == 403
 
     def test_response(self):
         '''Test the issuing of a Authorisation Token. A Token that encrypted by us should also be able to be
