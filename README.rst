@@ -1,5 +1,5 @@
 ==========================================================
-``oAuth2 Protocol Implementation``: Authorisation Server
+``py_auth_server``: A flask-based authorisation server
 ==========================================================
 
 .. image:: https://travis-ci.com/d2gex/ms1_auth_server.svg?branch=master
@@ -8,29 +8,10 @@
 .. image:: https://img.shields.io/badge/coverage-98%25-brightgreen.svg
     :target: #
 
-This is this first of the 3 microservices currently being implemented that will abstract the three main entities
-typically interacting in a oAuth2 protocol: **Authorisation Server**, **Resource Server** and **Client Application**.
-They all will be deployed using Travis CI and served through **AWS SDK** (EC2, RDS and DocumentDB).
-
-The architecture across the three microservices will be kept the same for maintainability purposes, using Nginx as Web
-Server, Gunicorn as WSGI server and Flask/Flask Restplus as Web app and REST API. Additionally the Authorisation Server
-and the Resource server are using MySQL and MongoDB online databases, respectively.
-
-All oAuth-related features of the three microservices are implemented following the guidelines as defined by oAuth2.0_.
-A architectural diagram showing the services each microservice provide and the relationship between them  is shown
-below.
-
-.. image:: docs/images/microservices_diagram.png
-    :alt: oAuth2 microservices architecture
-    :target: #
-
-Figure 1: oAuth2 microservices architecture
-
-.. _oAuth2.0:
-    https://oauth.net/2/
-
-This underdevelopment instance represents the Authorisation server that both implements the **Authorisation Code**
-Grand Type and provides a web and an API interface as follows:
+**Py_auth_server** is an authorisation server implemented using Flask, Flask Restplus, SqlAlchemy and MySQL following
+the _oAuth2.0 protocol guidelines. It also uses JwCrypto for JWK, JWS and JWT of the JOSE Web Standards as specified by
+the _IETF. The Authorisation server both implements the **Authorisation Code** Grand Type and provides a web and an API
+interface as follows:
 
 1. Web Interface:
     a.  Resource Owner Login and Registration.
@@ -43,9 +24,14 @@ Grand Type and provides a web and an API interface as follows:
     c.  Authorisation: clients will be granted first with an Authorisation code via an http redirection and then
         a JWT token to be used with the Resource Server.
 
-The REST API is being crafted using Open Api -Swagger- for easy end-user documentation, testing and getting-used to.
-An example for the *Registration* resource is shown below:
+.. _oAuth2.0:
+    https://www.oauth.com/
 
+.. _IETF:
+    https://datatracker.ietf.org/wg/jose/charter/
+
+The REST API has being crafted using Open Api -Swagger- for easy end-user documentation, testing and getting-used to.
+An example for the *Registration* resource is shown below:
 
 .. image:: docs/images/swagger_sample.png
     :alt: Example of Registration resource
